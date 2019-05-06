@@ -54,5 +54,5 @@ set( Tests
 		test_thread.cpp
 		)
 set( TestDeps
-		al203_catch2 )
+		al2o3_catch2 )
 ADD_LIB_TESTS(${LibName} "${Interface}" "${Tests}" "${TestDeps}")
