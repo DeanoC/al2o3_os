@@ -1,8 +1,7 @@
-#include "core/core.h"
-#include "core/logger.h"
-#include "catch/catch.hpp"
-#include "os/filesystem.h"
-#include "tinystl/string.h"
+#include "al2o3_platform/platform.h"
+#include "al2o3_catch2/catch2.hpp"
+#include "al2o3_os/filesystem.h"
+#include "al2o3_tinystl/string.hpp"
 
 TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
   char const testFileInternalPath[] = "test_data/test.txt";

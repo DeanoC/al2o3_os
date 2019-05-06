@@ -1,9 +1,6 @@
-
-#include "cmdlineshell/cmdlineshell.h"
-
 #define CATCH_CONFIG_RUNNER
-#include "catch/catch.hpp"
+#include "al2o3_catch2/catch2.hpp"
 
-int Main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[]) {
   return Catch::Session().run(argc, (char**)argv);
 }

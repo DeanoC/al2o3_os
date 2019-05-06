@@ -1,7 +1,6 @@
-#include "core/core.h"
-#include "core/logger.h"
-#include "catch/catch.hpp"
-#include "os/file.h"
+#include "al2o3_platform/platform.h"
+#include "al2o3_catch2/catch2.hpp"
+#include "al2o3_os/file.h"
 
 TEST_CASE("Open and close (C)", "[OS File]") {
   Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);

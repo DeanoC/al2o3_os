@@ -1,6 +1,6 @@
-#include "core/core.h"
-#include "catch/catch.hpp"
-#include "os/thread.h"
+#include "al2o3_platform/platform.h"
+#include "al2o3_catch2/catch2.hpp"
+#include "al2o3_os/thread.h"
 
 void SetVarTo42(void *data) {
   REQUIRE(data);
