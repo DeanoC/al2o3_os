@@ -1,1 +1,58 @@
+cmake_minimum_required(VERSION 3.14)
+set(LibName al2o3_os)
+project(${LibName})
 
+include(FetchContent)
+FetchContent_Declare( al2o3 GIT_REPOSITORY https://github.com/DeanoC/al2o3 GIT_TAG master )
+FetchContent_GetProperties(al2o3)
+if(NOT al2o3_POPULATED)
+	FetchContent_Populate(al2o3)
+	add_subdirectory(${al2o3_SOURCE_DIR})
+endif()
+
+set(Interface
+		atomics.h
+		atomics.hpp
+		file.h
+		file.hpp
+		filesystem.h
+		filesystem.hpp
+		monitordesc.h
+		platformevents.hpp
+		rect.h
+		rect.hpp
+		thread.h
+		thread.hpp
+		time.h
+		)
+set(Src
+		file.c
+		filesystem.cpp
+		)
+if (WIN32)
+	list(APPEND Src windows/filesystem.cpp)
+	list(APPEND Src windows/thread.c)
+endif()
+
+if(APPLE)
+	list(APPEND Src posix/filesystem.cpp)
+	list(APPEND Src apple/filesystem.mm)
+	list(APPEND Src apple/time.mm)
+	list(APPEND Src posix/thread.c)
+endif()
+
+set(Deps
+		al2o3_catch2
+		al2o3_platform
+		al2o3_tinystl)
+ADD_LIB(${LibName} "${Interface}" "${Src}" "${Deps}")
+
+set( Tests
+		test_file.cpp
+		test_filesystem.cpp
+		test_os.cpp
+		test_thread.cpp
+		)
+set( TestDeps
+		al203_catch2 )
+ADD_LIB_TESTS(${LibName} "${Interface}" "${Tests}" "${TestDeps}")
