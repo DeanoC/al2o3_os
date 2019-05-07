@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.13)
 set(LibName al2o3_os)
 project(${LibName})
 
@@ -7,7 +7,7 @@ FetchContent_Declare( al2o3 GIT_REPOSITORY https://github.com/DeanoC/al2o3 GIT_T
 FetchContent_GetProperties(al2o3)
 if(NOT al2o3_POPULATED)
 	FetchContent_Populate(al2o3)
-	add_subdirectory(${al2o3_SOURCE_DIR})
+	add_subdirectory(${al2o3_SOURCE_DIR} ${al2o3_BINARY_DIR})
 endif()
 
 set(Interface
