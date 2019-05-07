@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.13)
 set(LibName al2o3_os)
 project(${LibName})
 
+#if building standalone and not specified build tests
+if(NOT BUILD_TESTS)
+	set(BUILDS_TESTS ON)
+endif()
+
 include(FetchContent)
 FetchContent_Declare( al2o3 GIT_REPOSITORY https://github.com/DeanoC/al2o3 GIT_TAG master )
 FetchContent_GetProperties(al2o3)
