@@ -2,19 +2,19 @@
 // Summary: Apache - original from The-Forge modified by DeanoC
 
 #pragma once
-#ifndef WYRD_OS_FILESYSTEM_H
-#define WYRD_OS_FILESYSTEM_H
+#ifndef AL2O3_OS_FILESYSTEM_H
+#define AL2O3_OS_FILESYSTEM_H
 
 #include "al2o3_platform/platform.h"
 
 static const size_t FS_npos = (size_t) (-1);
 
-// is the provided path an internal path or a platform (they can be the same)
+// is the provided path a platform or the a normalised path(they can be the same)
 // internal paths are normalized to use forward slash '/' as directory seperator
 // platform paths are slashes in the platform preferred direction
-AL2O3_EXTERN_C bool Os_IsInternalPath(char const *pathName);
-AL2O3_EXTERN_C bool Os_GetInternalPath(char const *pathName, char *dirOut, size_t maxSize);
-AL2O3_EXTERN_C bool Os_GetPlatformPath(char const *pathName, char *dirOut, size_t maxSize);
+AL2O3_EXTERN_C bool Os_IsNormalisedPath(char const *pathName);
+AL2O3_EXTERN_C bool Os_GetNormalisedPathFromPlatformPath(char const *pathName, char *dirOut, size_t maxSize);
+AL2O3_EXTERN_C bool Os_GetPlatformPathFromNormalisedPath(char const *pathName, char *dirOut, size_t maxSize);
 
 AL2O3_EXTERN_C bool Os_IsAbsolutePath(char const *path);
 AL2O3_EXTERN_C bool Os_SplitPath(char const *path, size_t *fileName, size_t *extension);
@@ -39,7 +39,21 @@ AL2O3_EXTERN_C bool Os_GetAppPrefsDir(char const *org, char const *app, char *di
 
 AL2O3_EXTERN_C size_t Os_GetLastModifiedTime(char const *fileName);
 
-#endif //WYRD_OS_FILESYSTEM_H
+typedef void* Os_DirectoryEnumeratorHandle;
+typedef void (*Os_DirectoryEnumeratorFunc)(Os_DirectoryEnumeratorHandle handle, void* userData, char const* filename);
+
+AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorFromPath(char const* path, Os_DirectoryEnumeratorFunc func, void* userData);
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorClose(Os_DirectoryEnumeratorHandle handle);
+
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle);
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStall(Os_DirectoryEnumeratorHandle handle);
+
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncStart(Os_DirectoryEnumeratorHandle handle);
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncNext(Os_DirectoryEnumeratorHandle handle);
+
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorCancel(Os_DirectoryEnumeratorHandle handle);
+
+#endif //AL2O3_OS_FILESYSTEM_H
 
 /*
  * Copyright (c) 2018-2019 Confetti Interactive Inc.

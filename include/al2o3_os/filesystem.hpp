@@ -12,22 +12,22 @@ namespace FileSystem {
 
 typedef void (*FileDialogCallbackFn)(tinystl::string url, void *userData);
 
-inline bool IsInternalPath(tinystl::string const& path) {
-  return Os_IsInternalPath(path.c_str());
+inline bool IsNormalisedPath(tinystl::string const& path) {
+  return Os_IsNormalisedPath(path.c_str());
 }
 
-inline tinystl::string GetInternalPath(tinystl::string const& path) {
+inline tinystl::string GetNormalisedPathFromPlatformPath(tinystl::string const& path) {
   char tmp[2048];
-  if (Os_GetInternalPath(path.c_str(), tmp, 2048)) {
+  if (Os_GetNormalisedPathFromPlatformPath(path.c_str(), tmp, 2048)) {
     return tinystl::string(tmp);
   } else {
     return tinystl::string();
   }
 }
 
-inline tinystl::string GetPlatformPath(tinystl::string const& path) {
+inline tinystl::string GetPlatformPathFromNormalisedPath(tinystl::string const& path) {
   char tmp[2048];
-  if (Os_GetPlatformPath(path.c_str(), tmp, sizeof(tmp))) {
+  if (Os_GetPlatformPathFromNormalisedPath(path.c_str(), tmp, sizeof(tmp))) {
     return tinystl::string(tmp);
   } else {
     return tinystl::string();

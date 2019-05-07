@@ -5,7 +5,7 @@
 
 AL2O3_EXTERN_C bool Os_SplitPath(char const *p, size_t *fileName, size_t *extension) {
   ASSERT(p != nullptr);
-  ASSERT(Os_IsInternalPath(p));
+  ASSERT(Os_IsNormalisedPath(p));
 
   tinystl::string path(p);
   if (path.empty()) { return false; }

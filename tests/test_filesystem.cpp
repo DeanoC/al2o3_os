@@ -7,24 +7,24 @@ TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
   char const testFileInternalPath[] = "test_data/test.txt";
   char pathOut[2048];
 
-  bool intPathOk = Os_GetInternalPath(testFileInternalPath, pathOut, 2048);
+  bool intPathOk = Os_GetNormalisedPathFromPlatformPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(intPathOk);
   REQUIRE(strcmp(testFileInternalPath, pathOut) == 0);
 
-  REQUIRE(Os_IsInternalPath(pathOut));
+  REQUIRE(Os_IsNormalisedPath(pathOut));
 
 #if PLATFORM == PLATFORM_WINDOWS
-  bool platPathOk = Os_GetPlatformPath(testFileInternalPath, pathOut, 2048);
+  bool platPathOk = Os_GetPlatformPathFromNormalisedPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);
   REQUIRE(strcmp(testFileInternalPath, pathOut) != 0);
 
-  REQUIRE(!Os_IsInternalPath(pathOut));
+  REQUIRE(!Os_IsNormalisedPath(pathOut));
 #else
-  bool platPathOk = Os_GetPlatformPath(testFileInternalPath, pathOut, 2048);
+  bool platPathOk = Os_GetPlatformPathFromNormalisedPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);
   REQUIRE(strcmp(testFileInternalPath, pathOut) == 0);
 
-  REQUIRE(Os_IsInternalPath(testFileInternalPath));
+  REQUIRE(Os_IsNormalisedPath(testFileInternalPath));
 
 #endif
 
@@ -109,7 +109,6 @@ TEST_CASE("Os_GetCurrentDir (C)", "[OS FileSystem]") {
 
   size_t const curdirPos = path.find_last('/');
   REQUIRE(curdirPos != tinystl::string::npos);
-  LOGWARNING(buffer);
   REQUIRE(strcmp("out_bin/", buffer + curdirPos + 1) == 0);
 
 }
@@ -210,10 +209,34 @@ TEST_CASE("GetAppPrefsDir (C)", "[OS  FileSystem]") {
   // complex to do more tests... need to think
 }
 
-TEST_CASE("Os_GetLastModifiedTime (C)", "[OS  FileSystem]") {
+TEST_CASE("Os_GetLastModifiedTime (C)", "[OS FileSystem]") {
 
   char const testFilePath0[] = "test_data/test.txt";
   bool okay = Os_GetLastModifiedTime(testFilePath0);
   REQUIRE(okay);
   // complex to do more tests... need to think
+}
+
+static bool foundTestTxt;
+void Os_DirectoryEnumeratorTestFunc(Os_DirectoryEnumeratorHandle handle, void* userData, char const* filename) {
+	LOGINFO(filename);
+	if (strcmp(filename, "test_data") == 0) {
+		foundTestTxt = true;
+	}
+}
+
+TEST_CASE("Os_DirectoryEnumeratorSyncStart (C)", "[OS FileSystem]") {
+	char buffer[1024];
+	bool const getOk = Os_GetCurrentDir(buffer, sizeof(buffer));
+	REQUIRE(getOk);
+
+	foundTestTxt = false;
+	Os_DirectoryEnumeratorHandle handle = Os_DirectoryEnumeratorFromPath(buffer, &Os_DirectoryEnumeratorTestFunc, nullptr);
+	REQUIRE(handle);
+	REQUIRE(Os_DirectoryEnumeratorSyncStart(handle));
+	while (Os_DirectoryEnumeratorSyncNext(handle)) {
+		// do nothing
+	}
+	REQUIRE(foundTestTxt == true);
+	Os_DirectoryEnumeratorClose(handle);
 }

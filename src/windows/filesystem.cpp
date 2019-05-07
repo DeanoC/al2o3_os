@@ -2,15 +2,17 @@
 #include "al2o3_platform/windows.h"
 #include "al2o3_os/file.h"
 #include "al2o3_tinystl/string.hpp"
+#include "al2o3_os/thread.h"
+#include "al2o3_os/filesystem.hpp"
 #include <shlobj_core.h>
 #include <io.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include "al2o3_os/thread.h"
-//#include "../Interfaces/IMemoryManager.h"
 
-EXTERN_C bool Os_IsInternalPath(char const *p) {
+// this can produce false negative if give a pure filename, however in this case it
+// doesn't matter, tho in may be slightly slower due to a redundent normalised to platform transform
+AL2O3_EXTERN_C bool Os_IsNormalisedPath(char const *p) {
   tinystl::string path(p);
   size_t slash = path.find_last('/');
   if (slash == tinystl::string::npos) {
@@ -20,7 +22,7 @@ EXTERN_C bool Os_IsInternalPath(char const *p) {
   }
 }
 
-EXTERN_C bool Os_GetInternalPath(char const *path, char *pathOut, size_t maxSize) {
+AL2O3_EXTERN_C bool Os_GetNormalisedPathFromPlatformPath(char const *path, char *pathOut, size_t maxSize) {
   ASSERT(path);
   ASSERT(pathOut);
 
@@ -40,7 +42,7 @@ EXTERN_C bool Os_GetInternalPath(char const *path, char *pathOut, size_t maxSize
   return true;
 }
 
-EXTERN_C bool Os_GetPlatformPath(char const *path, char *pathOut, size_t maxSize) {
+AL2O3_EXTERN_C bool Os_GetPlatformPathFromNormalisedPath(char const *path, char *pathOut, size_t maxSize) {
   ASSERT(path);
   ASSERT(pathOut);
 
@@ -60,25 +62,28 @@ EXTERN_C bool Os_GetPlatformPath(char const *path, char *pathOut, size_t maxSize
   return true;
 }
 
-EXTERN_C void Os_GetCurrentDir(char *pathOut, size_t maxSize) {
+AL2O3_EXTERN_C bool Os_GetCurrentDir(char *pathOut, size_t maxSize) {
   ASSERT(MAX_PATH <= maxSize);
   char tmp[MAX_PATH];
   size_t s = GetCurrentDirectoryA(MAX_PATH, tmp);
+	if (s >= MAX_PATH) return false;
   tmp[s] = '\\';
   tmp[s + 1] = 0;
-  Os_GetInternalPath(tmp, pathOut, maxSize);
+  Os_GetNormalisedPathFromPlatformPath(tmp, pathOut, maxSize);
+	return true;
 }
 
-EXTERN_C void Os_SetCurrentDir(const char *path) {
+AL2O3_EXTERN_C bool Os_SetCurrentDir(const char *path) {
   char tmp[2048];
-  if (!Os_GetPlatformPath(path, tmp, sizeof(tmp))) { return; }
+  if (!Os_GetPlatformPathFromNormalisedPath(path, tmp, sizeof(tmp))) { return false; }
 
   SetCurrentDirectoryA(tmp);
+	return true;
 }
 
-EXTERN_C bool Os_FileExists(const char *fileName) {
+AL2O3_EXTERN_C bool Os_FileExists(const char *fileName) {
   char tmp[2048];
-  if (!Os_GetPlatformPath(fileName, tmp, sizeof(tmp))) { return false; }
+  if (!Os_GetPlatformPathFromNormalisedPath(fileName, tmp, sizeof(tmp))) { return false; }
 
 #ifdef _DURANGO
   return (fopen(tmp, "rb") != NULL);
@@ -87,9 +92,9 @@ EXTERN_C bool Os_FileExists(const char *fileName) {
 #endif
 }
 
-EXTERN_C bool Os_DirExists(char const *pathName) {
+AL2O3_EXTERN_C bool Os_DirExists(char const *pathName) {
   char tmp[2048];
-  if (!Os_GetPlatformPath(pathName, tmp, sizeof(tmp))) { return false; }
+  if (!Os_GetPlatformPathFromNormalisedPath(pathName, tmp, sizeof(tmp))) { return false; }
 
   DWORD attributes = GetFileAttributesA(tmp);
   if (attributes == INVALID_FILE_ATTRIBUTES ||
@@ -98,36 +103,36 @@ EXTERN_C bool Os_DirExists(char const *pathName) {
   } else { return true; }
 }
 
-EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
+AL2O3_EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
   char srctmp[2048];
   char dsttmp[2048];
-  if (!Os_GetPlatformPath(src, srctmp, sizeof(srctmp))) { return false; }
-  if (!Os_GetPlatformPath(dst, dsttmp, sizeof(dsttmp))) { return false; }
+  if (!Os_GetPlatformPathFromNormalisedPath(src, srctmp, sizeof(srctmp))) { return false; }
+  if (!Os_GetPlatformPathFromNormalisedPath(dst, dsttmp, sizeof(dsttmp))) { return false; }
 
   return CopyFileA(srctmp, dsttmp, FALSE) ? true : false;
 
 }
 
-EXTERN_C bool Os_FileDelete(char const *fileName) {
+AL2O3_EXTERN_C bool Os_FileDelete(char const *fileName) {
   char tmp[2048];
-  if (!Os_GetPlatformPath(fileName, tmp, sizeof(tmp))) { return false; }
+  if (!Os_GetPlatformPathFromNormalisedPath(fileName, tmp, sizeof(tmp))) { return false; }
   return DeleteFileA(tmp) != 0;
 }
 
-EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
+AL2O3_EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
   dirOut[0] = 0;
   GetModuleFileNameA(nullptr, dirOut, maxSize);
   return true;
 }
 
-EXTERN_C bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
+AL2O3_EXTERN_C bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
   ASSERT(maxSize >= MAX_PATH);
   dirOut[0] = 0;
   SHGetSpecialFolderPathA(nullptr, dirOut, CSIDL_PERSONAL, 0);
   return true;
 }
 
-EXTERN_C bool Os_GetAppPrefsDir(const char *org, const char *app, char *dirOut, int maxSize) {
+AL2O3_EXTERN_C bool Os_GetAppPrefsDir(const char *org, const char *app, char *dirOut, int maxSize) {
   /*
   * Vista and later has a new API for this, but SHGetFolderPath works there,
   *  and apparently just wraps the new API. This is the new way to do it:
@@ -171,7 +176,7 @@ EXTERN_C bool Os_GetAppPrefsDir(const char *org, const char *app, char *dirOut, 
   return true;
 }
 
-EXTERN_C size_t Os_GetLastModifiedTime(const char *_fileName) {
+AL2O3_EXTERN_C size_t Os_GetLastModifiedTime(const char *_fileName) {
   struct stat fileInfo{};
 
   if (!stat(_fileName, &fileInfo)) {
@@ -180,6 +185,95 @@ EXTERN_C size_t Os_GetLastModifiedTime(const char *_fileName) {
     // return an impossible large mod time as the file doesn't exist
     return ~0;
   }
+}
+
+struct Os_WinDirectoryEnumerator {
+	char path[2048];
+	HANDLE findHandle;
+	Os_DirectoryEnumeratorFunc func;
+	void* userData;
+};
+
+AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorFromPath(char const* cpath, Os_DirectoryEnumeratorFunc func, void* userData) {
+	ASSERT(cpath);
+	ASSERT(func);
+
+	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)malloc(sizeof(*enumerator));
+	if (enumerator == nullptr) return nullptr;
+
+	Os_GetPlatformPathFromNormalisedPath(cpath, enumerator->path, sizeof(enumerator->path));
+	size_t s = strlen(enumerator->path);
+	if (s + 1 < sizeof(enumerator->path)) {
+		enumerator->path[s] = '*';
+		enumerator->path[s + 1] = 0;
+		s = s + 1;
+	}
+	else {
+		free(enumerator);
+		return nullptr;
+	}
+	enumerator->findHandle = INVALID_HANDLE_VALUE;
+	enumerator->func = func;
+	enumerator->userData = userData;
+	return (Os_DirectoryEnumeratorHandle)enumerator;
+}
+
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorClose(Os_DirectoryEnumeratorHandle handle) {
+	ASSERT(handle != nullptr);
+	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)handle;
+	if(enumerator->findHandle != INVALID_HANDLE_VALUE) FindClose(enumerator->findHandle);
+	free(enumerator);
+}
+
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle) {
+	LOGINFOF("Os_DirectoryEnumeratorAsyncStart isn't async on windows yet, will be a busy sync for now");
+
+	// TODO implement Async for now its just sync in a loop :(
+	if (Os_DirectoryEnumeratorSyncStart(handle) == false) return false;
+	while (Os_DirectoryEnumeratorSyncNext(handle)) {
+		// empty loop action happens in sync next
+	}
+}
+
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncStart(Os_DirectoryEnumeratorHandle handle) {
+	ASSERT(handle != nullptr);
+	Os_WinDirectoryEnumerator * enumerator = (Os_WinDirectoryEnumerator*)handle;
+
+	// check it hasn't already started
+	if (enumerator->findHandle != INVALID_HANDLE_VALUE) {
+		return false;
+	}
+
+	WIN32_FIND_DATAA findData;
+	enumerator->findHandle = FindFirstFileA(enumerator->path, &findData);
+	if (enumerator->findHandle == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+	enumerator->func(handle, enumerator->userData, findData.cFileName);
+	return true;
+}
+
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncNext(Os_DirectoryEnumeratorHandle handle) {
+	ASSERT(handle != nullptr);
+	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)handle;
+	ASSERT(enumerator->findHandle != INVALID_HANDLE_VALUE);
+	WIN32_FIND_DATAA findData;
+	bool ndone = FindNextFileA(enumerator->findHandle, &findData) != 0;
+	if (ndone) {
+		enumerator->func(handle, enumerator->userData, findData.cFileName);
+	}
+
+	return ndone;
+}
+
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorCancel(Os_DirectoryEnumeratorHandle handle) {
+	// TODO no async means this doesn't do anything
+	return true;
+}
+AL2O3_EXTERN_C bool Os_DirectoryEnumeratorStallForAll(Os_DirectoryEnumeratorHandle handle) {
+	// TODO no async means this doesn't do anything
+	return true;
 }
 
 /*
