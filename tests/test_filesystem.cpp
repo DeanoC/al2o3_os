@@ -110,7 +110,7 @@ TEST_CASE("Os_GetCurrentDir (C)", "[OS FileSystem]") {
   size_t const curdirPos = path.find_last('/');
   REQUIRE(curdirPos != tinystl::string::npos);
   LOGWARNING(buffer);
-  REQUIRE(strcmp("live/", buffer + curdirPos + 1) == 0);
+  REQUIRE(strcmp("out_bin/", buffer + curdirPos + 1) == 0);
 
 }
 
