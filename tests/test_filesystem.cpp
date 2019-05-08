@@ -13,7 +13,7 @@ TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
 
   REQUIRE(Os_IsNormalisedPath(pathOut));
 
-#if PLATFORM == PLATFORM_WINDOWS
+#if AL2O3_PLATFORM == AL2O3_PLATFORM_WINDOWS
   bool platPathOk = Os_GetPlatformPathFromNormalisedPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);
   REQUIRE(strcmp(testFileInternalPath, pathOut) != 0);
