@@ -44,7 +44,6 @@ if(APPLE)
 endif()
 
 set(Deps
-		al2o3_catch2
 		al2o3_platform
 		al2o3_tinystl)
 ADD_LIB(${LibName} "${Interface}" "${Src}" "${Deps}")
