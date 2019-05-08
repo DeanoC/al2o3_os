@@ -186,6 +186,53 @@ AL2O3_EXTERN_C size_t Os_GetLastModifiedTime(const char *_fileName) {
     return ~0;
   }
 }
+AL2O3_EXTERN_C int Os_SystemRun(char const* fileName, int argc, const char** argv) {
+	char path[2048];
+
+	size_t fileNamePos;
+	size_t extPos;
+	Os_GetPlatformPathFromNormalisedPath(fileName, path, sizeof(path));
+	Os_SplitPath(path, &fileNamePos, &extPos);
+
+
+	// TODO replace memory allocating vis string ops
+	tinystl::string pathStr;
+
+	if (extPos == FS_npos) {
+		pathStr = "\"" + tinystl::string(path) + ".exe\"";
+	}
+	else {
+		pathStr = "\"" + tinystl::string(path) + "\"";
+	}
+
+	tinystl::string commandLine = pathStr;
+
+	for (int i = 0; i < argc; ++i) {
+		commandLine += " " + tinystl::string(argv[i]);
+	}
+
+	STARTUPINFOA        startupInfo;
+	PROCESS_INFORMATION processInfo;
+	memset(&startupInfo, 0, sizeof startupInfo);
+	memset(&processInfo, 0, sizeof processInfo);
+	startupInfo.cb = sizeof(STARTUPINFO);
+	startupInfo.dwFlags |= STARTF_USESTDHANDLES;
+	startupInfo.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	startupInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+
+	if (!CreateProcessA(
+		NULL, (LPSTR)commandLine.c_str(), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &startupInfo, &processInfo))
+		return -1;
+
+	WaitForSingleObject(processInfo.hProcess, INFINITE);
+	DWORD exitCode;
+	GetExitCodeProcess(processInfo.hProcess, &exitCode);
+
+	CloseHandle(processInfo.hProcess);
+	CloseHandle(processInfo.hThread);
+
+	return exitCode;
+}
 
 struct Os_WinDirectoryEnumerator {
 	char path[2048];
