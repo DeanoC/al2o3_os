@@ -2,8 +2,8 @@
 // Summary: Apache - original from The-Forge modified by DeanoC
 
 #pragma once
-#ifndef WYRD_OS_FILE_H
-#define WYRD_OS_FILE_H
+#ifndef AL2O3_OS_FILE_H
+#define AL2O3_OS_FILE_H
 
 #include "al2o3_platform/platform.h"
 
@@ -41,7 +41,7 @@ AL2O3_EXTERN_C int64_t Os_FileTell(Os_FileHandle handle);
 AL2O3_EXTERN_C size_t Os_FileSize(Os_FileHandle handle);
 AL2O3_EXTERN_C bool Os_FileIsEOF(Os_FileHandle handle);
 
-#endif //WYRD_OS_FILE_H
+#endif //AL2O3_OS_FILE_H
 
 /*
  * Copyright (c) 2018-2019 Confetti Interactive Inc.
