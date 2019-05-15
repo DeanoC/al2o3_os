@@ -238,7 +238,7 @@ struct Os_WinDirectoryEnumerator {
 	bool cancelled;
 };
 
-AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorFromPath(char const* cpath, Os_DirectoryEnumeratorFunc func, void* userData) {
+AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char const* cpath, Os_DirectoryEnumeratorFunc func, void* userData) {
 	ASSERT(cpath);
 	ASSERT(func);
 
@@ -263,7 +263,7 @@ AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorFromPath(char 
 	return (Os_DirectoryEnumeratorHandle)enumerator;
 }
 
-AL2O3_EXTERN_C void Os_DirectoryEnumeratorClose(Os_DirectoryEnumeratorHandle handle) {
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorFree(Os_DirectoryEnumeratorHandle handle) {
 	ASSERT(handle != nullptr);
 	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)handle;
 	if(enumerator->findHandle != INVALID_HANDLE_VALUE) FindClose(enumerator->findHandle);
@@ -278,6 +278,7 @@ AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandl
 	while (Os_DirectoryEnumeratorSyncNext(handle)) {
 		// empty loop action happens in sync next
 	}
+	return true;
 }
 
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncStart(Os_DirectoryEnumeratorHandle handle) {

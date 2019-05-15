@@ -219,24 +219,23 @@ TEST_CASE("Os_GetLastModifiedTime (C)", "[OS FileSystem]") {
 
 static bool foundTestTxt;
 void Os_DirectoryEnumeratorTestFunc(Os_DirectoryEnumeratorHandle handle, void* userData, char const* filename) {
-	LOGINFO(filename);
 	if (strcmp(filename, "test_data") == 0) {
 		foundTestTxt = true;
 	}
 }
 
-TEST_CASE("Os_DirectoryEnumeratorSyncStart (C)", "[OS FileSystem]") {
+TEST_CASE("Os_DirectoryEnumerator Sync (C)", "[OS FileSystem]") {
 	char buffer[1024];
 	bool const getOk = Os_GetCurrentDir(buffer, sizeof(buffer));
 	REQUIRE(getOk);
 
 	foundTestTxt = false;
-	Os_DirectoryEnumeratorHandle handle = Os_DirectoryEnumeratorFromPath(buffer, &Os_DirectoryEnumeratorTestFunc, nullptr);
+	Os_DirectoryEnumeratorHandle handle = Os_DirectoryEnumeratorAlloc(buffer, &Os_DirectoryEnumeratorTestFunc, nullptr);
 	REQUIRE(handle);
 	REQUIRE(Os_DirectoryEnumeratorSyncStart(handle));
 	while (Os_DirectoryEnumeratorSyncNext(handle)) {
 		// do nothing
 	}
 	REQUIRE(foundTestTxt == true);
-	Os_DirectoryEnumeratorClose(handle);
+	Os_DirectoryEnumeratorFree(handle);
 }

@@ -42,8 +42,8 @@ AL2O3_EXTERN_C size_t Os_GetLastModifiedTime(char const *fileName);
 typedef void* Os_DirectoryEnumeratorHandle;
 typedef void (*Os_DirectoryEnumeratorFunc)(Os_DirectoryEnumeratorHandle handle, void* userData, char const* filename);
 
-AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorFromPath(char const* path, Os_DirectoryEnumeratorFunc func, void* userData);
-AL2O3_EXTERN_C void Os_DirectoryEnumeratorClose(Os_DirectoryEnumeratorHandle handle);
+AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char const* path, Os_DirectoryEnumeratorFunc func, void* userData);
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorFree(Os_DirectoryEnumeratorHandle handle);
 
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle);
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStall(Os_DirectoryEnumeratorHandle handle);

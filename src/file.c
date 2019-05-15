@@ -86,3 +86,7 @@ AL2O3_EXTERN_C size_t Os_FileSize(Os_FileHandle handle) {
 AL2O3_EXTERN_C bool Os_FileIsEOF(Os_FileHandle handle) {
   return feof((FILE *) handle);
 }
+
+AL2O3_EXTERN_C bool Os_FileIsOpen(Os_FileHandle handle) {
+	return handle != NULL;
+}

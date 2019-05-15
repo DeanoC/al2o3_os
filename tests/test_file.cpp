@@ -5,6 +5,7 @@
 TEST_CASE("Open and close (C)", "[OS File]") {
   Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fh != NULL);
+  REQUIRE(Os_FileIsOpen(fh));
   bool closeOk = Os_FileClose(fh);
   REQUIRE(closeOk);
 }
@@ -13,6 +14,7 @@ TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
 
   Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fh != NULL);
+	REQUIRE(Os_FileIsOpen(fh));
 
   static char expectedBytes[] = "Testing 1, 2, 3";
   char buffer[1024];
