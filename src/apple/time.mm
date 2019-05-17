@@ -1,5 +1,5 @@
-#include "core/core.h"
-#include "os/time.h"
+#include "al2o3_platform/platform.h"
+#include "al2o3_os/time.h"
 #include <time.h>
 
 uint64_t Os_GetSystemTime() {

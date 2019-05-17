@@ -1,4 +1,3 @@
-
 #include "al2o3_platform/platform.h"
 #include "al2o3_os/filesystem.h"
 #include "al2o3_tinystl/string.hpp"

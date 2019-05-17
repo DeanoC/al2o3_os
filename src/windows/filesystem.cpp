@@ -271,7 +271,7 @@ AL2O3_EXTERN_C void Os_DirectoryEnumeratorFree(Os_DirectoryEnumeratorHandle hand
 }
 
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle) {
-	LOGINFOF("Os_DirectoryEnumeratorAsyncStart isn't async on windows yet, will be a busy sync for now");
+	LOGWARNINGF("Os_DirectoryEnumeratorAsyncStart isn't async on windows yet, will be a busy sync for now");
 
 	// TODO implement Async for now its just sync in a loop :(
 	if (Os_DirectoryEnumeratorSyncStart(handle) == false) return false;

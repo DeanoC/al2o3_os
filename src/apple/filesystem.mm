@@ -1,18 +1,17 @@
 #import <Foundation/Foundation.h>
 #include <AppKit/NSOpenPanel.h>
 
-#include "core/core.h"
-#include "core/logger.h"
-#include "os/filesystem.hpp"
+#include "al2o3_platform/platform.h"
+#include "al2o3_os/filesystem.hpp"
 //#include "../Interfaces/IMemoryManager.h"
 
 #define RESOURCE_DIR "Shaders/Metal"
 
-EXTERN_C bool Os_IsAbsolutePath(char const *fileFullPath) {
+AL2O3_EXTERN_C bool Os_IsAbsolutePath(char const *fileFullPath) {
   return (([NSString stringWithUTF8String:fileFullPath].absolutePath == YES) ? true : false);
 }
 
-EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
+AL2O3_EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
   NSError *error = nil;
   if (NO == [[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
                                                     toPath:[NSString stringWithUTF8String:dst]
@@ -24,7 +23,7 @@ EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
   return true;
 }
 
-EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
+AL2O3_EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
   const char *exePath =
       [[[[NSBundle mainBundle] bundlePath] stringByStandardizingPath] cStringUsingEncoding:NSUTF8StringEncoding];
   if (exePath == NULL) { return false; }
@@ -45,7 +44,7 @@ bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
   return true;
 }
 
-EXTERN_C bool Os_GetAppPrefsDir(char const *org, char const *app, char *dirOut, int maxSize) {
+AL2O3_EXTERN_C bool Os_GetAppPrefsDir(char const *org, char const *app, char *dirOut, int maxSize) {
   const char *rawUserPath = [[[[NSFileManager defaultManager] homeDirectoryForCurrentUser] absoluteString] UTF8String];
   if (rawUserPath == NULL) { return false; }
   const char *path;
