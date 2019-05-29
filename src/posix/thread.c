@@ -62,14 +62,14 @@ struct TrampParam {
 static void *FuncTrampoline(void *param) {
   struct TrampParam *tp = (struct TrampParam *) param;
   tp->func(tp->param);
-  free(tp);
+  MEMORY_FREE(tp);
 
   return NULL;
 }
 
 AL2O3_EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, Os_JobFunction_t func, void *data) {
   ASSERT(thread);
-  struct TrampParam *tp = (struct TrampParam *) malloc(sizeof(struct TrampParam));
+  struct TrampParam *tp = (struct TrampParam *) MEMORY_MALLOC(sizeof(struct TrampParam));
   tp->func = func;
   tp->param = data;
 

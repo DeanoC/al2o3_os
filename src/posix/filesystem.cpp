@@ -215,7 +215,7 @@ AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char con
 	ASSERT(cpath);
 	ASSERT(func);
 
-	Os_PosixDirectoryEnumerator* enumerator = (Os_PosixDirectoryEnumerator*)malloc(sizeof(*enumerator));
+	Os_PosixDirectoryEnumerator* enumerator = (Os_PosixDirectoryEnumerator*)MEMORY_MALLOC(sizeof(*enumerator));
 	if (enumerator == nullptr) return nullptr;
 
 	Os_GetPlatformPathFromNormalisedPath(cpath, enumerator->path, sizeof(enumerator->path));
@@ -231,7 +231,7 @@ AL2O3_EXTERN_C void Os_DirectoryEnumeratorFree(Os_DirectoryEnumeratorHandle hand
 	ASSERT(handle != nullptr);
 	Os_PosixDirectoryEnumerator* enumerator = (Os_PosixDirectoryEnumerator*)handle;
 	if(enumerator->dir != nullptr) closedir(enumerator->dir);
-	free(enumerator);
+	MEMORY_FREE(enumerator);
 }
 
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle) {

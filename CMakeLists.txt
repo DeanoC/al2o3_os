@@ -46,13 +46,14 @@ endif()
 
 set(Deps
 		al2o3_platform
+		al2o3_memory
 		al2o3_tinystl)
 ADD_LIB(${LibName} "${Interface}" "${Src}" "${Deps}")
 
 set( Tests
+		runner.cpp
 		test_file.cpp
 		test_filesystem.cpp
-		test_os.cpp
 		test_thread.cpp
 		)
 set( TestDeps

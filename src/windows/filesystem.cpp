@@ -47,13 +47,15 @@ AL2O3_EXTERN_C bool Os_GetPlatformPathFromNormalisedPath(char const *path, char 
 
   // copy and replace \ with /
   if (strlen(path) >= maxSize) { return false; }
-  unsigned int i = 0;
+
+	unsigned int i = 0;
   do {
-    if (path[i] == '/') {
+   if (path[i] == '/') {
       pathOut[i] = '\\';
     } else {
-      pathOut[i] = path[i];
+		 pathOut[i] = path[i];
     }
+
     ++i;
   } while (path[i] != 0);
 
@@ -242,24 +244,27 @@ AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char con
 	ASSERT(cpath);
 	ASSERT(func);
 
-	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)malloc(sizeof(*enumerator));
+	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)MEMORY_MALLOC(sizeof(Os_WinDirectoryEnumerator));
 	if (enumerator == nullptr) return nullptr;
-
+	
 	Os_GetPlatformPathFromNormalisedPath(cpath, enumerator->path, sizeof(enumerator->path));
 	size_t s = strlen(enumerator->path);
+
 	if (s + 1 < sizeof(enumerator->path)) {
 		enumerator->path[s] = '*';
 		enumerator->path[s + 1] = 0;
 		s = s + 1;
 	}
 	else {
-		free(enumerator);
+		MEMORY_FREE(enumerator);
 		return nullptr;
 	}
 	enumerator->findHandle = INVALID_HANDLE_VALUE;
 	enumerator->func = func;
 	enumerator->userData = userData;
 	enumerator->cancelled = false;
+
+
 	return (Os_DirectoryEnumeratorHandle)enumerator;
 }
 
@@ -267,7 +272,7 @@ AL2O3_EXTERN_C void Os_DirectoryEnumeratorFree(Os_DirectoryEnumeratorHandle hand
 	ASSERT(handle != nullptr);
 	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)handle;
 	if(enumerator->findHandle != INVALID_HANDLE_VALUE) FindClose(enumerator->findHandle);
-	free(enumerator);
+	MEMORY_FREE(enumerator);
 }
 
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle) {
