@@ -52,15 +52,15 @@ inline bool SplitPath(tinystl::string const& fullPath, tinystl::string& fileName
 inline tinystl::string ReplaceExtension(tinystl::string const& path,
                                         tinystl::string const& newExtension) {
   char tmp[2048];
-  bool okay = Os_ReplaceExtension(path.c_str(), newExtension.c_str(), tmp, sizeof(tmp));
-  if (okay) { return tinystl::string(tmp); }
+  bool okayReplaceExt = Os_ReplaceExtension(path.c_str(), newExtension.c_str(), tmp, sizeof(tmp));
+  if (okayReplaceExt) { return tinystl::string(tmp); }
   else { return {}; }
 }
 
 inline tinystl::string GetParentPath(tinystl::string const& path) {
   char tmp[2048];
-  bool okay = Os_GetParentPath(path.c_str(), tmp, sizeof(tmp));
-  if (okay) { return tinystl::string(tmp); }
+  bool okayParentPath = Os_GetParentPath(path.c_str(), tmp, sizeof(tmp));
+  if (okayParentPath) { return tinystl::string(tmp); }
   else { return {}; }
 }
 
