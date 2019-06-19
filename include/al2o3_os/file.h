@@ -7,7 +7,7 @@
 
 #include "al2o3_platform/platform.h"
 
-typedef void* Os_FileHandle;
+typedef struct Os_File *Os_FileHandle;
 
 enum Os_FileMode {
   Os_FM_Read = 1,
