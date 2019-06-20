@@ -1,7 +1,6 @@
 #include "al2o3_platform/platform.h"
 #include "al2o3_os/thread.h"
-//#include "../Interfaces/IMemoryManager.h"
-
+#include "al2o3_memory/memory.h"
 #include <unistd.h>
 #include <sys/sysctl.h>
 
