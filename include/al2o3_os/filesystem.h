@@ -29,7 +29,7 @@ AL2O3_EXTERN_C bool Os_DirExists(char const *pathName);
 
 AL2O3_EXTERN_C bool Os_FileCopy(char const *src, char const *dst);
 AL2O3_EXTERN_C bool Os_FileDelete(char const *fileName);
-AL2O3_EXTERN_C bool Os_CreateDir(char const *pathName);
+AL2O3_EXTERN_C bool Os_DirCreate(char const *pathName);
 AL2O3_EXTERN_C int Os_SystemRun(char const *fileName, int argc, const char **argv);
 
 
@@ -39,19 +39,23 @@ AL2O3_EXTERN_C bool Os_GetAppPrefsDir(char const *org, char const *app, char *di
 
 AL2O3_EXTERN_C size_t Os_GetLastModifiedTime(char const *fileName);
 
-typedef void* Os_DirectoryEnumeratorHandle;
-typedef void (*Os_DirectoryEnumeratorFunc)(Os_DirectoryEnumeratorHandle handle, void* userData, char const* filename);
+typedef struct  {
+	char const* filename;
+	bool directory;
+} Os_DirectoryEnumeratorItem;
 
-AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char const* path, Os_DirectoryEnumeratorFunc func, void* userData);
-AL2O3_EXTERN_C void Os_DirectoryEnumeratorFree(Os_DirectoryEnumeratorHandle handle);
+typedef struct Os_DirectoryEnumerator *Os_DirectoryEnumeratorHandle;
+typedef void (*Os_DirectoryEnumeratorAsyncFunc)(Os_DirectoryEnumeratorHandle handle, void* userData, Os_DirectoryEnumeratorItem const * item);
 
-AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle);
+AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorCreate(char const* path);
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorDestroy(Os_DirectoryEnumeratorHandle handle);
+
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle, Os_DirectoryEnumeratorAsyncFunc func, void* userData);
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStall(Os_DirectoryEnumeratorHandle handle);
-
-AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncStart(Os_DirectoryEnumeratorHandle handle);
-AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncNext(Os_DirectoryEnumeratorHandle handle);
-
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorCancel(Os_DirectoryEnumeratorHandle handle);
+
+AL2O3_EXTERN_C Os_DirectoryEnumeratorItem const* Os_DirectoryEnumeratorSyncNext(Os_DirectoryEnumeratorHandle handle);
+
 
 #endif //AL2O3_OS_FILESYSTEM_H
 

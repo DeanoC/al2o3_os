@@ -93,8 +93,8 @@ inline bool FileDelete(tinystl::string const& src) {
   return Os_FileDelete(src.c_str());
 }
 
-inline bool CreateDir(tinystl::string const& dir) {
-  return Os_CreateDir(dir.c_str());
+inline bool DirCreate(tinystl::string const& dir) {
+  return Os_DirCreate(dir.c_str());
 }
 
 inline tinystl::string GetFileName(tinystl::string const& path) {

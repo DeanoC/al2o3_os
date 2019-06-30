@@ -120,6 +120,12 @@ AL2O3_EXTERN_C bool Os_FileDelete(char const *fileName) {
   return DeleteFileA(tmp) != 0;
 }
 
+AL2O3_EXTERN_C bool Os_DirCreate(char const *dirName) {
+	char tmp[2048];
+	if (!Os_GetPlatformPathFromNormalisedPath(dirName, tmp, sizeof(tmp))) { return false; }
+	return CreateDirectoryA(tmp, nullptr) != 0;
+}
+
 AL2O3_EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
   dirOut[0] = 0;
   GetModuleFileNameA(nullptr, dirOut, maxSize);
@@ -232,19 +238,20 @@ AL2O3_EXTERN_C int Os_SystemRun(char const* fileName, int argc, const char** arg
 	return exitCode;
 }
 
-struct Os_WinDirectoryEnumerator {
+struct Os_DirectoryEnumerator {
 	char path[2048];
 	HANDLE findHandle;
-	Os_DirectoryEnumeratorFunc func;
-	void* userData;
+
+	WIN32_FIND_DATAA findData;
+	Os_DirectoryEnumeratorItem lastItem;
+
 	bool cancelled;
 };
 
-AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char const* cpath, Os_DirectoryEnumeratorFunc func, void* userData) {
+AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorCreate(char const* cpath) {
 	ASSERT(cpath);
-	ASSERT(func);
 
-	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)MEMORY_MALLOC(sizeof(Os_WinDirectoryEnumerator));
+	auto enumerator = (Os_DirectoryEnumerator*)MEMORY_MALLOC(sizeof(Os_DirectoryEnumerator));
 	if (enumerator == nullptr) return nullptr;
 	
 	Os_GetPlatformPathFromNormalisedPath(cpath, enumerator->path, sizeof(enumerator->path));
@@ -260,86 +267,64 @@ AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char con
 		return nullptr;
 	}
 	enumerator->findHandle = INVALID_HANDLE_VALUE;
-	enumerator->func = func;
-	enumerator->userData = userData;
 	enumerator->cancelled = false;
 
 
 	return (Os_DirectoryEnumeratorHandle)enumerator;
 }
 
-AL2O3_EXTERN_C void Os_DirectoryEnumeratorFree(Os_DirectoryEnumeratorHandle handle) {
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorDestroy(Os_DirectoryEnumeratorHandle handle) {
 	ASSERT(handle != nullptr);
-	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)handle;
+	auto enumerator = (Os_DirectoryEnumerator*)handle;
 	if(enumerator->findHandle != INVALID_HANDLE_VALUE) FindClose(enumerator->findHandle);
 	MEMORY_FREE(enumerator);
 }
 
-AL2O3_EXTERN_C bool Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle) {
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle, Os_DirectoryEnumeratorAsyncFunc func, void* userData) {
 	LOGWARNINGF("Os_DirectoryEnumeratorAsyncStart isn't async on windows yet, will be a busy sync for now");
 
 	// TODO implement Async for now its just sync in a loop :(
-	if (Os_DirectoryEnumeratorSyncStart(handle) == false) return false;
-	while (Os_DirectoryEnumeratorSyncNext(handle)) {
-		// empty loop action happens in sync next
+	while (auto item = Os_DirectoryEnumeratorSyncNext(handle)) {
+		func(handle, userData, item);
 	}
-	return true;
 }
 
-AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncStart(Os_DirectoryEnumeratorHandle handle) {
+AL2O3_EXTERN_C Os_DirectoryEnumeratorItem const* Os_DirectoryEnumeratorSyncNext(Os_DirectoryEnumeratorHandle handle) {
 	ASSERT(handle != nullptr);
-	Os_WinDirectoryEnumerator * enumerator = (Os_WinDirectoryEnumerator*)handle;
+	auto enumerator = (Os_DirectoryEnumerator*)handle;
+	if (enumerator->cancelled) return nullptr;
 
-	// check it hasn't already started
-	if (enumerator->findHandle != INVALID_HANDLE_VALUE) {
-		return false;
-	}
-
-	WIN32_FIND_DATAA findData;
-	enumerator->findHandle = FindFirstFileA(enumerator->path, &findData);
-	if (enumerator->findHandle == INVALID_HANDLE_VALUE)
+	if (enumerator->findHandle == INVALID_HANDLE_VALUE) {
+		enumerator->findHandle = FindFirstFileA(enumerator->path, &enumerator->findData);
+		if (enumerator->findHandle == INVALID_HANDLE_VALUE) {
+			return nullptr;
+		}
+	} else
 	{
-		return false;
+		bool ndone = FindNextFileA(enumerator->findHandle, &enumerator->findData) != 0;
+		if (!ndone) {
+			return nullptr;
+		}
 	}
-	
+
 	// skip . and ..
-	if (strncmp(findData.cFileName, ".", 1) == 0) {
+	if (strncmp(enumerator->findData.cFileName, ".", 1) == 0) {
 		return Os_DirectoryEnumeratorSyncNext(handle);
 	}
-	if (strncmp(findData.cFileName, "..", 2) == 0) {
+	if (strncmp(enumerator->findData.cFileName, "..", 2) == 0) {
 		return Os_DirectoryEnumeratorSyncNext(handle);
 	}
 
-	enumerator->func(handle, enumerator->userData, findData.cFileName);
-	return true;
-}
+	auto item = &enumerator->lastItem;
+	item->filename = enumerator->findData.cFileName;
+	item->directory = (enumerator->findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 
-AL2O3_EXTERN_C bool Os_DirectoryEnumeratorSyncNext(Os_DirectoryEnumeratorHandle handle) {
-	ASSERT(handle != nullptr);
-	Os_WinDirectoryEnumerator* enumerator = (Os_WinDirectoryEnumerator*)handle;
-	if (enumerator->cancelled) return false;
-
-	ASSERT(enumerator->findHandle != INVALID_HANDLE_VALUE);
-	WIN32_FIND_DATAA findData;
-	bool ndone = FindNextFileA(enumerator->findHandle, &findData) != 0;
-	if (ndone) {
-		// skip . and ..
-		if (strncmp(findData.cFileName, ".", 1) == 0) {
-			return Os_DirectoryEnumeratorSyncNext(handle);
-		}
-		if (strncmp(findData.cFileName, "..", 2) == 0) {
-			return Os_DirectoryEnumeratorSyncNext(handle);
-		}
-
-		enumerator->func(handle, enumerator->userData, findData.cFileName);
-	}
-
-	return ndone;
+	return &enumerator->lastItem;
 }
 
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorCancel(Os_DirectoryEnumeratorHandle handle) {
 	ASSERT(handle != nullptr);
-	Os_WinDirectoryEnumerator * enumerator = (Os_WinDirectoryEnumerator*)handle;
+	auto enumerator = (Os_DirectoryEnumerator*)handle;
 	enumerator->cancelled = true;
 	return true;
 }
