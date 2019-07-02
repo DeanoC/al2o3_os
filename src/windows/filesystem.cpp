@@ -257,6 +257,18 @@ AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorCreate(char co
 	Os_GetPlatformPathFromNormalisedPath(cpath, enumerator->path, sizeof(enumerator->path));
 	size_t s = strlen(enumerator->path);
 
+	if( Os_DirExists(enumerator->path)) {
+			if (s + 1 < sizeof(enumerator->path)) {
+				enumerator->path[s] = '\\';
+				enumerator->path[s + 1] = 0;
+				s = s + 1;
+			}	else {
+				MEMORY_FREE(enumerator);
+				return nullptr;
+			}
+
+	}
+
 	if (s + 1 < sizeof(enumerator->path)) {
 		enumerator->path[s] = '*';
 		enumerator->path[s + 1] = 0;

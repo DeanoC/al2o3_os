@@ -117,12 +117,7 @@ bool Os_DirCreate(char const *pathName) {
 		}
 	}
 
-#ifdef _WIN32
-	bool success = (CreateDirectoryA(RemoveTrailingSlash(pathName).c_str(), NULL) == TRUE)
-			|| (GetLastError() == ERROR_ALREADY_EXISTS);
-#else
 	bool success = mkdir(GetPlatformPathFromNormalisedPath(pathName).c_str(), S_IRWXU) == 0 || errno == EEXIST;
-#endif
 
 	return success;
 }
