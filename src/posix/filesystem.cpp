@@ -112,7 +112,7 @@ bool Os_DirCreate(char const *pathName) {
 	// Create each of the parents if necessary
 	tinystl::string parentPath = GetParentPath(pathName);
 	if ((uint32_t) parentPath.size() > 1 && !DirExists(parentPath)) {
-		if (!Os_CreateDir(parentPath.c_str())) {
+		if (!Os_DirCreate(parentPath.c_str())) {
 			return false;
 		}
 	}
@@ -233,7 +233,8 @@ int Os_SystemRun(char const *fileName, int argc, const char **argv) {
 	}
 #endif
 }
-struct Os_PosixDirectoryEnumerator {
+
+struct Os_DirectoryEnumerator {
 	char path[2048];
 	DIR *dir;
 
@@ -241,13 +242,10 @@ struct Os_PosixDirectoryEnumerator {
 	bool cancelled;
 };
 
-AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char const *cpath,
-																																				Os_DirectoryEnumeratorFunc func,
-																																				void *userData) {
+AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorCreate(char const *cpath) {
 	ASSERT(cpath);
-	ASSERT(func);
 
-	Os_PosixDirectoryEnumerator *enumerator = (Os_PosixDirectoryEnumerator *) MEMORY_MALLOC(sizeof(*enumerator));
+	auto enumerator = (Os_DirectoryEnumerator *) MEMORY_MALLOC(sizeof(Os_DirectoryEnumerator));
 	if (enumerator == nullptr)
 		return nullptr;
 
@@ -258,9 +256,9 @@ AL2O3_EXTERN_C Os_DirectoryEnumeratorHandle Os_DirectoryEnumeratorAlloc(char con
 	return (Os_DirectoryEnumeratorHandle) enumerator;
 }
 
-AL2O3_EXTERN_C void Os_DirectoryEnumeratorFree(Os_DirectoryEnumeratorHandle handle) {
+AL2O3_EXTERN_C void Os_DirectoryEnumeratorDestroy(Os_DirectoryEnumeratorHandle handle) {
 	ASSERT(handle != nullptr);
-	Os_PosixDirectoryEnumerator *enumerator = (Os_PosixDirectoryEnumerator *) handle;
+	auto enumerator = (Os_DirectoryEnumerator *) handle;
 	if (enumerator->dir != nullptr)
 		closedir(enumerator->dir);
 	MEMORY_FREE(enumerator);
@@ -277,20 +275,20 @@ AL2O3_EXTERN_C void Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandl
 
 AL2O3_EXTERN_C Os_DirectoryEnumeratorItem const *Os_DirectoryEnumeratorSyncNext(Os_DirectoryEnumeratorHandle handle) {
 	ASSERT(handle != nullptr);
-	Os_PosixDirectoryEnumerator *enumerator = (Os_PosixDirectoryEnumerator *) handle;
+	auto enumerator = (Os_DirectoryEnumerator *) handle;
 	if (enumerator->cancelled)
-		return false;
+		return nullptr;
 
 	if (enumerator->dir == nullptr) {
 		enumerator->dir = opendir(enumerator->path);
 		if (enumerator->dir == nullptr) {
-			return false;
+			return nullptr;
 		}
 	}
 
 	dirent *entry = readdir(enumerator->dir);
 	if (entry == nullptr)
-		return false;
+		return nullptr;
 	// skip . and ..
 	if (strncmp(entry->d_name, ".", 1) == 0) {
 		return Os_DirectoryEnumeratorSyncNext(handle);
@@ -300,14 +298,14 @@ AL2O3_EXTERN_C Os_DirectoryEnumeratorItem const *Os_DirectoryEnumeratorSyncNext(
 	}
 
 	enumerator->lastItem.filename = entry->d_name;
-	enumerator->lastItem.filename = entry->is_dir;//? TODO
+	enumerator->lastItem.directory = entry->d_type == DT_DIR;
 
 	return &enumerator->lastItem;
 }
 
 AL2O3_EXTERN_C bool Os_DirectoryEnumeratorCancel(Os_DirectoryEnumeratorHandle handle) {
 	ASSERT(handle != nullptr);
-	Os_PosixDirectoryEnumerator *enumerator = (Os_PosixDirectoryEnumerator *) handle;
+	auto enumerator = (Os_DirectoryEnumerator *) handle;
 	enumerator->cancelled = true;
 	return true;
 }
