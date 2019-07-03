@@ -60,7 +60,13 @@ AL2O3_EXTERN_C bool Os_GetParentPath(char const *pathc, char *dirOut, size_t max
   }
 
   size_t lastSlash = path.find_last('/');
-  tinystl::string n(path.c_str(), lastSlash + 1);
+  tinystl::string n;
+  if(lastSlash == tinystl::string::npos)
+	{
+  	n = path;
+	} else {
+		n = tinystl::string(path.c_str(), lastSlash + 1);
+	}
 
   if (n.size() > maxSize) { return false; }
   else {
