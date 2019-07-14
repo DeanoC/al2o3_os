@@ -1,8 +1,8 @@
 #pragma once
-#ifndef WYRD_OS_MONITORDESC_H
-#define WYRD_OS_MONITORDESC_H
+#ifndef AL2O3_OS_MONITORDESC_H
+#define AL2O3_OS_MONITORDESC_H
 
-#include "os/rect.h"
+#include "al2o3_os/rect.h"
 
 typedef struct Resolution
 {
@@ -14,8 +14,8 @@ typedef struct Resolution
 //
 typedef struct MonitorDesc
 {
-	RectDesc monitorRect;
-	RectDesc workRect;
+	Os_Rect monitorRect;
+	Os_Rect workRect;
 	// This size matches the static size of DISPLAY_DEVICE.DeviceName
 #ifdef _WIN32
 	WCHAR adapterName[32];
@@ -36,12 +36,12 @@ typedef struct MonitorDesc
 	uint32_t resolutionCount;
 } MonitorDesc;
 
-void getRecommendedResolution(RectDesc* rect);
+void getRecommendedResolution(Os_Rect* rect);
 // Sets video mode for specified display
 void setResolution(const MonitorDesc* pMonitor, const Resolution* pRes);
 
 MonitorDesc* getMonitor(uint32_t index);
-vec2 getDpiScale();
+//vec2 getDpiScale();
 
 bool getResolutionSupport(const MonitorDesc* pMonitor, const Resolution* pRes);
 

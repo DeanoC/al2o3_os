@@ -1,9 +1,9 @@
 #pragma once
-#ifndef WYRD_OS_RECT_HPP
-#define WYRD_OS_RECT_HPP
+#ifndef AL2O3_OS_RECT_HPP
+#define AL2O#_OS_RECT_HPP
 
-#include "core/core.h"
-#include "os/rect.h"
+#include "al2o3_platform/platform.h"
+#include "al2o3_os/rect.h"
 
 namespace Os {
 
