@@ -8,15 +8,15 @@
 #define RESOURCE_DIR "Shaders/Metal"
 
 AL2O3_EXTERN_C bool Os_IsAbsolutePath(char const *fileFullPath) {
-  return (([NSString stringWithUTF8String:fileFullPath].absolutePath == YES) ? true : false);
+	return [NSString stringWithUTF8String:fileFullPath].absolutePath;
 }
 
 AL2O3_EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
   NSError *error = nil;
-  if (NO == [[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
-                                                    toPath:[NSString stringWithUTF8String:dst]
-                                                     error:&error]) {
-    LOGINFOF("Failed to copy file with error : %s", [[error localizedDescription] UTF8String]);
+	if (![[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
+																							 toPath:[NSString stringWithUTF8String:dst]
+																								error:&error]) {
+		LOGINFO("Failed to copy file with error : %s", [[error localizedDescription] UTF8String]);
     return false;
   }
 
@@ -46,7 +46,9 @@ bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
 
 AL2O3_EXTERN_C bool Os_GetAppPrefsDir(char const *org, char const *app, char *dirOut, int maxSize) {
   const char *rawUserPath = [[[[NSFileManager defaultManager] homeDirectoryForCurrentUser] absoluteString] UTF8String];
-  if (rawUserPath == NULL) { return false; }
+	if (rawUserPath == nullptr) {
+		return false;
+	}
   const char *path;
   path = strstr(rawUserPath, "/Users/");
 
@@ -68,7 +70,7 @@ void get_files_with_extension(const char *dir, const char *ext, tinystl::vector<
   tinystl::string path = FileSystem::GetPlatformPath(dir);
   DIR *pDir = opendir(dir);
   if (!pDir) {
-    LOGWARNINGF("Could not open directory: %s", dir);
+    LOGWARNING("Could not open directory: %s", dir);
     return;
   }
 
@@ -98,7 +100,7 @@ void get_sub_directories(const char *dir, tinystl::vector<tinystl::string>& subD
   tinystl::string path = FileSystem::GetPlatformPath(dir);
   DIR *pDir = opendir(dir);
   if (!pDir) {
-    LOGWARNINGF("Could not open directory: %s", dir);
+    LOGWARNING("Could not open directory: %s", dir);
     return;
   }
 

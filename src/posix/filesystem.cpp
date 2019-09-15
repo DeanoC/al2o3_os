@@ -261,7 +261,7 @@ AL2O3_EXTERN_C void Os_DirectoryEnumeratorDestroy(Os_DirectoryEnumeratorHandle h
 
 AL2O3_EXTERN_C void Os_DirectoryEnumeratorAsyncStart(Os_DirectoryEnumeratorHandle handle,
 																										 Os_DirectoryEnumeratorAsyncFunc func, void *userData) {
-	LOGWARNINGF("Os_DirectoryEnumeratorAsyncStart isn't async on posix yet, will be a busy sync for now");
+	LOGWARNING("Os_DirectoryEnumeratorAsyncStart isn't async on posix yet, will be a busy sync for now");
 
 	while (auto item = Os_DirectoryEnumeratorSyncNext(handle)) {
 		func(handle, userData, item);
