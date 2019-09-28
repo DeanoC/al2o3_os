@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.12.4 FATAL_ERROR)
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(NOT hasParent)
 	get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
