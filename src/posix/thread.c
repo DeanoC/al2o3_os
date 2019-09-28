@@ -3,6 +3,9 @@
 #include "al2o3_memory/memory.h"
 #include <unistd.h>
 #include <sys/sysctl.h>
+#if defined(__linux__)
+#include <sys/sysinfo.h>
+#endif
 
 AL2O3_EXTERN_C bool Os_MutexCreate(Os_Mutex_t *mutex) {
   ASSERT(mutex);
@@ -92,11 +95,15 @@ AL2O3_EXTERN_C void Os_Sleep(uint64_t waitms) {
 }
 
 AL2O3_EXTERN_C uint32_t Os_CPUCoreCount(void) {
+#if defined(__linux__)
+ return get_nprocs_conf();
+#else
   size_t len;
   unsigned int ncpu;
   len = sizeof(ncpu);
   sysctlbyname("hw.ncpu", &ncpu, &len, NULL, 0);
   return (uint32_t) ncpu;
+#endif
 }
 
 static bool s_isMainThreadIDSet = false;

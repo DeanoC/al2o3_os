@@ -7,7 +7,15 @@
 #include <sys/stat.h>     // stat
 #include <stdio.h>        // remove
 #include <dirent.h>        // directory functions
+#include <fcntl.h>
+#include <sys/types.h>
+#include <pwd.h>
 
+#if defined(__APPLE__) || defined(__FreeBSD__)
+#include <copyfile.h>
+#else
+#include <sys/sendfile.h>
+#endif
 // internal and platform path are the same on posix
 AL2O3_EXTERN_C bool Os_IsNormalisedPath(char const *path) {
 	return true;
@@ -30,6 +38,55 @@ AL2O3_EXTERN_C bool Os_GetPlatformPathFromNormalisedPath(char const *path, char 
 	strcpy(pathOut, path);
 	return true;
 }
+
+// APPLE have tere own method called from objective-c
+#if AL2O3_PLATFORM_OS == AL2O3_OS_GNULINUX
+AL2O3_EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
+    readlink("/proc/self/exe", dirOut, maxSize);
+    return true;
+}
+#elif AL2O3_PLATFORM_OS == AL2O3_OS_FREEBSD
+AL2O3_EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
+    readlink("/proc/curproc/file", dirOut, maxSize);
+    return true;
+}
+#endif
+
+#if AL2O3_PLATFORM_OS != AL2O3_OS_OSX
+AL2O3_EXTERN_C bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
+	const char *homedir;
+
+	if ((homedir = getenv("HOME")) == NULL) {
+	    homedir = getpwuid(getuid())->pw_dir;
+	}
+	if(strlen(homedir) < maxSize) {
+		strcpy(dirOut, homedir);
+		return true;
+	}
+	return false;
+}
+
+AL2O3_EXTERN_C bool Os_GetAppPrefsDir(char const *org, char const *app, char *dirOut, int maxSize) {
+  char homeDir[2048];
+  if(Os_GetUserDocumentsDir(homeDir, sizeof(homeDir)) == false) {
+  	return false;
+  }
+  if(strlen(org) > 1024) {
+  	return false;
+  }
+  if(strlen(app) > 1024) {
+  	return false;
+  }
+
+  char path[4096];
+  sprintf(path, "%s\\%s\\%s", homeDir, org, app);
+
+  if (strlen(path) >= maxSize) { return false; }
+  strcpy(dirOut, path);
+  return true;
+}
+
+#endif
 
 AL2O3_EXTERN_C size_t Os_GetLastModifiedTime(const char *fileName) {
 	struct stat fileInfo;
@@ -86,8 +143,67 @@ AL2O3_EXTERN_C bool Os_DirExists(char const *path) {
 
 	return (st.st_mode & S_IFDIR);
 }
+AL2O3_EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
+	char srcBuffer[2048];
+	char dstBuffer[2048];
 
-bool Os_FileDelete(char const *fileName) {
+	if(strlen(src) > 2048) {
+		return false;
+	}
+	if(strlen(dst) > 2048) {
+		return false;
+	}
+
+	if (Os_IsNormalisedPath(src)) {
+		strcpy(srcBuffer, src);
+	} else {
+		bool platformOk = Os_GetPlatformPathFromNormalisedPath(src, srcBuffer, sizeof(srcBuffer));
+		if (platformOk == false) {
+			return false;
+		}
+	}
+	if (Os_IsNormalisedPath(dst)) {
+		strcpy(dstBuffer, dst);
+	} else {
+		bool platformOk = Os_GetPlatformPathFromNormalisedPath(dst, dstBuffer, sizeof(dstBuffer));
+		if (platformOk == false) {
+			return false;
+		}
+	}
+
+	// in kernel mode, zero overhead copy
+
+	// from https://stackoverflow.com/questions/2180079/how-can-i-copy-a-file-on-unix-using-c
+	int input, output;    
+	if ((input = open(srcBuffer, O_RDONLY)) == -1)
+	{
+	    return -1;
+	}    
+	if ((output = creat(dstBuffer, 0660)) == -1)
+	{
+	    close(input);
+	    return -1;
+	}
+
+    //Here we use kernel-space copying for performance reasons
+#if defined(__APPLE__) || defined(__FreeBSD__)
+    //fcopyfile works on FreeBSD and OS X 10.5+ 
+    int result = fcopyfile(input, output, 0, COPYFILE_ALL);
+#else
+    //sendfile will work with non-socket output (i.e. regular file) on Linux 2.6.33+
+    off_t bytesCopied = 0;
+    struct stat fileinfo = {0};
+    fstat(input, &fileinfo);
+    int result = sendfile(output, input, &bytesCopied, fileinfo.st_size);
+#endif
+
+    close(input);
+    close(output);
+
+    return result != -1;
+}
+
+AL2O3_EXTERN_C bool Os_FileDelete(char const *fileName) {
 	char buffer[2048];
 
 	if (Os_IsNormalisedPath(fileName)) {
@@ -99,14 +215,10 @@ bool Os_FileDelete(char const *fileName) {
 		}
 	}
 
-#ifdef _WIN32
-	return DeleteFileA(GetNativePath(fileName).c_str()) != 0;
-#else
 	return remove(buffer) == 0;
-#endif
 }
 
-bool Os_DirCreate(char const *pathName) {
+AL2O3_EXTERN_C bool Os_DirCreate(char const *pathName) {
 	using namespace Os::FileSystem;
 
 	// Create each of the parents if necessary
@@ -122,84 +234,21 @@ bool Os_DirCreate(char const *pathName) {
 	return success;
 }
 
-int Os_SystemRun(char const *fileName, int argc, const char **argv) {
+AL2O3_EXTERN_C int Os_SystemRun(char const *fileName, int argc, const char **argv) {
 	tinystl::string fixedFileName = Os::FileSystem::GetPlatformPathFromNormalisedPath(fileName);
 
-#ifdef _DURANGO
-	ASSERT(!"UNIMPLEMENTED");
-		return -1;
-
-#elif defined(_WIN32)
-	// Add .exe extension if no extension defined
-	if (GetExtension(fixedFileName).size() == 0)
-		fixedFileName += ".exe";
-
-	tinystl::string commandLine = "\"" + fixedFileName + "\"";
-	for (unsigned i = 0; i < (unsigned) arguments.size(); ++i)
-		commandLine += " " + arguments[i];
-
-	HANDLE stdOut = NULL;
-	if (stdOutFile != "") {
-		SECURITY_ATTRIBUTES sa;
-		sa.nLength = sizeof(sa);
-		sa.lpSecurityDescriptor = NULL;
-		sa.bInheritHandle = TRUE;
-
-		stdOut = CreateFileA(stdOutFile,
-												 GENERIC_ALL,
-												 FILE_SHARE_WRITE | FILE_SHARE_READ,
-												 &sa,
-												 OPEN_ALWAYS,
-												 FILE_ATTRIBUTE_NORMAL,
-												 NULL);
-	}
-
-	STARTUPINFOA startupInfo;
-	PROCESS_INFORMATION processInfo;
-	memset(&startupInfo, 0, sizeof startupInfo);
-	memset(&processInfo, 0, sizeof processInfo);
-	startupInfo.cb = sizeof(STARTUPINFO);
-	startupInfo.dwFlags |= STARTF_USESTDHANDLES;
-	startupInfo.hStdOutput = stdOut;
-	startupInfo.hStdError = stdOut;
-
-	if (!CreateProcessA(
-			NULL,
-			(LPSTR) commandLine.c_str(),
-			NULL,
-			NULL,
-			stdOut ? TRUE : FALSE,
-			CREATE_NO_WINDOW,
-			NULL,
-			NULL,
-			&startupInfo,
-			&processInfo))
-		return -1;
-
-	WaitForSingleObject(processInfo.hProcess, INFINITE);
-	DWORD exitCode;
-	GetExitCodeProcess(processInfo.hProcess, &exitCode);
-
-	CloseHandle(processInfo.hProcess);
-	CloseHandle(processInfo.hThread);
-
-	if (stdOut) {
-		CloseHandle(stdOut);
-	}
-
-	return exitCode;
-#elif defined(__linux__)
+#if defined(__linux__)
 	tinystl::vector<const char*> argPtrs;
-		tinystl::string              cmd(fixedFileName.c_str());
-		char                         space = ' ';
-		cmd.append(&space, &space + 1);
-		for (unsigned i = 0; i < (unsigned)arguments.size(); ++i)
-		{
-				cmd.append(arguments[i].begin(), arguments[i].end());
-		}
+	tinystl::string              cmd(fixedFileName.c_str());
+	char                         space = ' ';
+	cmd.append(&space, &space + 1);
+	for (unsigned i = 0; i < (unsigned) argc; ++i) {
+		tinystl::string arg(argv[i]);
+		cmd.append(arg);
+	}
 
-		int res = system(cmd.c_str());
-		return res;
+	int res = system(cmd.c_str());
+	return res;
 #else
 	pid_t pid = fork();
 	if (pid == 0) {

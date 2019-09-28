@@ -11,18 +11,6 @@ AL2O3_EXTERN_C bool Os_IsAbsolutePath(char const *fileFullPath) {
 	return [NSString stringWithUTF8String:fileFullPath].absolutePath;
 }
 
-AL2O3_EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
-  NSError *error = nil;
-	if (![[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
-																							 toPath:[NSString stringWithUTF8String:dst]
-																								error:&error]) {
-		LOGINFO("Failed to copy file with error : %s", [[error localizedDescription] UTF8String]);
-    return false;
-  }
-
-  return true;
-}
-
 AL2O3_EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
   const char *exePath =
       [[[[NSBundle mainBundle] bundlePath] stringByStandardizingPath] cStringUsingEncoding:NSUTF8StringEncoding];
@@ -33,7 +21,7 @@ AL2O3_EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
   return true;
 }
 
-bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
+AL2O3_EXTERN_C bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
   const char *rawUserPath = [[[[NSFileManager defaultManager] homeDirectoryForCurrentUser] absoluteString] UTF8String];
   if (rawUserPath == NULL) { return false; }
 

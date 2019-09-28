@@ -38,9 +38,12 @@ if (WIN32)
 endif()
 
 if(APPLE)
-	list(APPEND Src posix/filesystem.cpp)
 	list(APPEND Src apple/filesystem.mm)
 	list(APPEND Src apple/time.mm)
+endif()
+
+if(APPLE OR UNIX)
+	list(APPEND Src posix/filesystem.cpp)
 	list(APPEND Src posix/thread.c)
 endif()
 
@@ -49,6 +52,9 @@ set(Deps
 		al2o3_memory
 		al2o3_tinystl)
 ADD_LIB(${LibName} "${Interface}" "${Src}" "${Deps}")
+if (UNIX)
+	target_link_libraries(${LibName} PRIVATE "pthread")
+endif ()
 
 set( Tests
 		runner.cpp
