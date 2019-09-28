@@ -1,3 +1,7 @@
+cmake_minimum_required(VERSION 3.12.4)
+
+option(unittests "unittests" OFF)
+
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(NOT hasParent)
 	include(FetchContent)
