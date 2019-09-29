@@ -16,11 +16,11 @@ TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
   REQUIRE(fh != NULL);
 	REQUIRE(Os_FileIsOpen(fh));
 
-  static char expectedBytes[] = "Testing 1, 2, 3";
+  static char expectedBytes[] = "Testing 1, 2, 3\n";
   char buffer[1024];
   size_t bytesRead = Os_FileRead(fh, buffer, 1024);
-  REQUIRE(bytesRead == 16);
-  buffer[15] = 0;
+  REQUIRE(bytesRead == strlen(expectedBytes));
+  buffer[15] = 0; // kill newline
   REQUIRE(strcmp(expectedBytes, buffer) == 0);
 
   bool closeOk = Os_FileClose(fh);
@@ -62,7 +62,7 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
   Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fh != NULL);
 
-  static char expectedBytes[] = "Testing 1, 2, 3";
+  static char expectedBytes[] = "Testing 1, 2, 3\n";
   char buffer[1024];
   size_t totalLen = strlen(expectedBytes);
 
@@ -71,7 +71,7 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
   REQUIRE(Os_FileTell(fh) == 4);
   size_t bytesRead0 = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead0 == 12);
-  REQUIRE(Os_FileTell(fh) == 16);
+  REQUIRE(Os_FileTell(fh) == totalLen);
 
   Os_FileSeek(fh, 4, Os_FSD_Begin);
   bool seek1 = Os_FileSeek(fh, 4, Os_FSD_Current);
@@ -79,14 +79,14 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
   REQUIRE(Os_FileTell(fh) == 8);
   size_t bytesRead1 = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead1 == 8);
-  REQUIRE(Os_FileTell(fh) == 16);
+  REQUIRE(Os_FileTell(fh) == totalLen);
 
   bool seek2 = Os_FileSeek(fh, -4, Os_FSD_End);
   REQUIRE(seek2);
-  REQUIRE(Os_FileTell(fh) == 12);
+  REQUIRE(Os_FileTell(fh) == totalLen-4);
   size_t bytesRead2 = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead2 == 4);
-  REQUIRE(Os_FileTell(fh) == 16);
+  REQUIRE(Os_FileTell(fh) == totalLen);
 
   bool closeOk = Os_FileClose(fh);
   REQUIRE(closeOk);
@@ -97,8 +97,10 @@ TEST_CASE("Size (C)", "[OS File]") {
   Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fh != NULL);
 
+	static char expectedBytes[] = "Testing 1, 2, 3\n";
+
   size_t size = Os_FileSize(fh);
-  REQUIRE(size == 16);
+  REQUIRE(size == strlen(expectedBytes));
 
   bool closeOk = Os_FileClose(fh);
   REQUIRE(closeOk);
