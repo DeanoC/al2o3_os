@@ -4,7 +4,7 @@
 #include "al2o3_tinystl/string.hpp"
 
 TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
-  char const testFileInternalPath[] = "test_data/test.txt";
+  char const testFileInternalPath[] = "test_data/al2o3_os/test.txt";
   char pathOut[2048];
 
   bool intPathOk = Os_GetNormalisedPathFromPlatformPath(testFileInternalPath, pathOut, 2048);
@@ -31,48 +31,48 @@ TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
 }
 
 TEST_CASE("SplitPath (C)", "[OS FileSystem]") {
-  char const testFilePath[] = "test_data/test.txt";
+  char const testFilePath[] = "test_data/al2o3_os/test.txt";
   size_t fileNamePos = FS_npos;
   size_t extensionPos = FS_npos;
   bool splitOk = Os_SplitPath(testFilePath, &fileNamePos, &extensionPos);
   REQUIRE(splitOk);
-  REQUIRE(fileNamePos == 10);
+  REQUIRE(fileNamePos == 19);
   REQUIRE(strcmp(&testFilePath[fileNamePos], "test.txt") == 0);
-  REQUIRE(extensionPos == 15);
+  REQUIRE(extensionPos == 24);
   REQUIRE(strcmp(&testFilePath[extensionPos], "txt") == 0);
 
   char pathOnly[1024];
   strncpy(pathOnly, testFilePath, fileNamePos);
   pathOnly[fileNamePos] = 0;
-  REQUIRE(strcmp(pathOnly, "test_data/") == 0);
+  REQUIRE(strcmp(pathOnly, "test_data/al2o3_os/") == 0);
 
 }
 
 TEST_CASE("ReplaceExtension (C)", "[OS FileSystem]") {
-  char const testFilePath[] = "test_data/test.txt";
-  char const test1FilePath[] = "test_data/test";
-  char const test2FilePath[] = "test_data/test.";
+  char const testFilePath[] = "test_data/al2o3_os/test.txt";
+  char const test1FilePath[] = "test_data/al2o3_os/test";
+  char const test2FilePath[] = "test_data/al2o3_os/test.";
   char const extReplace0[] = "tmp";
   char const extReplace1[] = "longer_ext";
 
   char buffer[1024];
   bool replace0Ok = Os_ReplaceExtension(testFilePath, extReplace0, buffer, sizeof(buffer));
   REQUIRE(replace0Ok);
-  REQUIRE(strcmp("test_data/test.tmp", buffer) == 0);
+  REQUIRE(strcmp("test_data/al2o3_os/test.tmp", buffer) == 0);
   bool replace1Ok = Os_ReplaceExtension(testFilePath, extReplace1, buffer, sizeof(buffer));
   REQUIRE(replace1Ok);
-  REQUIRE(strcmp("test_data/test.longer_ext", buffer) == 0);
+  REQUIRE(strcmp("test_data/al2o3_os/test.longer_ext", buffer) == 0);
   bool replace2Ok = Os_ReplaceExtension(buffer, "txt", buffer, sizeof(buffer));
   REQUIRE(replace2Ok);
   REQUIRE(strcmp(testFilePath, buffer) == 0);
 
   bool replace3Ok = Os_ReplaceExtension(test1FilePath, extReplace0, buffer, sizeof(buffer));
   REQUIRE(replace3Ok);
-  REQUIRE(strcmp("test_data/test.tmp", buffer) == 0);
+  REQUIRE(strcmp("test_data/al2o3_os/test.tmp", buffer) == 0);
 
   bool replace4Ok = Os_ReplaceExtension(test2FilePath, extReplace0, buffer, sizeof(buffer));
   REQUIRE(replace4Ok);
-  REQUIRE(strcmp("test_data/test.tmp", buffer) == 0);
+  REQUIRE(strcmp("test_data/al2o3_os/test.tmp", buffer) == 0);
 
 }
 
@@ -139,7 +139,7 @@ TEST_CASE("Os_SetCurrentDir (C)", "[OS FileSystem]") {
 
 TEST_CASE("File / Dir Exists (C)", "[OS FileSystem]") {
 
-  char const testFilePath0[] = "test_data/testblah.txt";
+  char const testFilePath0[] = "test_data/al2o3_os/testblah.txt";
   char const testFilePath1[] = "test_data/DOES_NOT_EXIST";
   char const testDirPath0[] = "test_data/";
   char const testDirPath1[] = "test_data/DOES_NOT_EXIST/";
@@ -161,8 +161,8 @@ TEST_CASE("File / Dir Exists (C)", "[OS FileSystem]") {
 }
 
 TEST_CASE("File Copy (C)", "[OS FileSystem]") {
-  char const testFilePath0[] = "test_data/testblah.txt";
-  char const testFilePath1[] = "test_data/testcopy.txt";
+  char const testFilePath0[] = "test_data/al2o3_os/testblah.txt";
+  char const testFilePath1[] = "test_data/al2o3_os/testcopy.txt";
 
   bool const copyOk = Os_FileCopy(testFilePath0, testFilePath1);
   REQUIRE(copyOk);
@@ -172,10 +172,10 @@ TEST_CASE("File Copy (C)", "[OS FileSystem]") {
 }
 
 TEST_CASE("File Delete (C)", "[OS  FileSystem]") {
-  char const testFilePath1[] = "test_data/testcopy.txt";
+  char const testFilePath1[] = "test_data/al2o3_os/testcopy.txt";
   bool const exists = Os_FileExists(testFilePath1);
   if (!exists) {
-    char const testFilePath0[] = "test_data/test.txt";
+    char const testFilePath0[] = "test_data/al2o3_os/test.txt";
     bool const copyOk = Os_FileCopy(testFilePath0, testFilePath1);
     REQUIRE(copyOk);
   }
