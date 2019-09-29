@@ -11,8 +11,16 @@ TEST_CASE("Open and close (C)", "[OS File]") {
 }
 
 TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
+	{
+  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Write);
+  REQUIRE(fh != NULL);
+  static char expectedBytes[] = "Testing 1, 2, 3";
+  size_t bytesWritten = Os_FileWrite(fh, expectedBytes, strlen(expectedBytes));
+  bool closeOk = Os_FileClose(fh);
+  REQUIRE(closeOk);
+	}
 
-  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_ReadBinary);
+	Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_ReadBinary);
   REQUIRE(fh != NULL);
 	REQUIRE(Os_FileIsOpen(fh));
 
@@ -20,7 +28,6 @@ TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
   char buffer[1024];
   size_t bytesRead = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead == 16);
-	buffer[15] = 0;
   REQUIRE(strcmp(expectedBytes, buffer) == 0);
 
   bool closeOk = Os_FileClose(fh);
