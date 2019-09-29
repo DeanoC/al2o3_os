@@ -19,8 +19,8 @@ TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
   static char expectedBytes[] = "Testing 1, 2, 3";
   char buffer[1024];
   size_t bytesRead = Os_FileRead(fh, buffer, 1024);
-  buffer[bytesRead] = 0;
   REQUIRE(bytesRead == 16);
+  buffer[15] = 0;
   REQUIRE(strcmp(expectedBytes, buffer) == 0);
 
   bool closeOk = Os_FileClose(fh);
