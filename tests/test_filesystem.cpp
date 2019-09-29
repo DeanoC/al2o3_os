@@ -139,7 +139,7 @@ TEST_CASE("Os_SetCurrentDir (C)", "[OS FileSystem]") {
 
 TEST_CASE("File / Dir Exists (C)", "[OS FileSystem]") {
 
-  char const testFilePath0[] = "test_data/test.txt";
+  char const testFilePath0[] = "test_data/testblah.txt";
   char const testFilePath1[] = "test_data/DOES_NOT_EXIST";
   char const testDirPath0[] = "test_data/";
   char const testDirPath1[] = "test_data/DOES_NOT_EXIST/";
@@ -161,7 +161,7 @@ TEST_CASE("File / Dir Exists (C)", "[OS FileSystem]") {
 }
 
 TEST_CASE("File Copy (C)", "[OS FileSystem]") {
-  char const testFilePath0[] = "test_data/test.txt";
+  char const testFilePath0[] = "test_data/testblah.txt";
   char const testFilePath1[] = "test_data/testcopy.txt";
 
   bool const copyOk = Os_FileCopy(testFilePath0, testFilePath1);
@@ -211,7 +211,7 @@ TEST_CASE("GetAppPrefsDir (C)", "[OS  FileSystem]") {
 
 TEST_CASE("Os_GetLastModifiedTime (C)", "[OS FileSystem]") {
 
-  char const testFilePath0[] = "test_data/test.txt";
+  char const testFilePath0[] = "test_data/testblah.txt";
   bool okay = Os_GetLastModifiedTime(testFilePath0);
   REQUIRE(okay);
   // complex to do more tests... need to think

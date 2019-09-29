@@ -62,17 +62,6 @@ if (UNIX)
 	target_link_libraries(${LibName} PRIVATE "pthread")
 endif ()
 
-DECLARE_FETCH(
-		al2o3_os_testvectors
-		https://github.com/DeanoC/al2o3_os_testvectors.git
-		master)
-FetchContent_GetProperties(al2o3_os_testvectors)
-if (NOT al2o3_os_testvectors_POPULATED)
-	FetchContent_Populate(al2o3_os_testvectors)
-endif ()
-
-file(COPY test_data DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_data)
-
 set( Tests
 		runner.cpp
 		test_file.cpp
@@ -82,3 +71,4 @@ set( Tests
 set( TestDeps
 		al2o3_catch2 )
 ADD_LIB_TESTS(${LibName} "${Interface}" "${Tests}" "${TestDeps}")
+ADD_LIB_TESTVECTORS(${LibName})
