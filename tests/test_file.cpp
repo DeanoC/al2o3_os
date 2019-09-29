@@ -81,7 +81,7 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
 
   bool seek2 = Os_FileSeek(fh, -4, Os_FSD_End);
   REQUIRE(seek2);
-  REQUIRE(Os_FileTell(fh) == totalLen-4);
+  REQUIRE(Os_FileTell(fh) == 12);
   size_t bytesRead2 = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead2 == 4);
   REQUIRE(Os_FileTell(fh) == 16);
