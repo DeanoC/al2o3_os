@@ -12,14 +12,14 @@ TEST_CASE("Open and close (C)", "[OS File]") {
 
 TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
 
-  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
+  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_ReadBinary);
   REQUIRE(fh != NULL);
 	REQUIRE(Os_FileIsOpen(fh));
 
   static char expectedBytes[] = "Testing 1, 2, 3";
   char buffer[1024];
   size_t bytesRead = Os_FileRead(fh, buffer, 1024);
-  REQUIRE(bytesRead == strlen(expectedBytes));
+  REQUIRE(bytesRead == 16);
 	buffer[15] = 0;
   REQUIRE(strcmp(expectedBytes, buffer) == 0);
 
@@ -62,9 +62,7 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
   Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_ReadBinary);
   REQUIRE(fh != NULL);
 
-  static char expectedBytes[] = "Testing 1, 2, 3\n";
   char buffer[1024];
-  size_t totalLen = strlen(expectedBytes);
 
   bool seek0 = Os_FileSeek(fh, 4, Os_FSD_Begin);
   REQUIRE(seek0);
