@@ -2,17 +2,9 @@
 #include "al2o3_catch2/catch2.hpp"
 #include "al2o3_os/file.h"
 
-TEST_CASE("Open and close (C)", "[OS File]") {
-  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
-  REQUIRE(fh != NULL);
-  REQUIRE(Os_FileIsOpen(fh));
-  bool closeOk = Os_FileClose(fh);
-  REQUIRE(closeOk);
-}
-
 TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
 	{
-  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Write);
+  Os_FileHandle fh = Os_FileOpen("test.txt", Os_FM_Write);
   REQUIRE(fh != NULL);
   static char expectedBytes[] = "Testing 1, 2, 3";
   size_t bytesWritten = Os_FileWrite(fh, expectedBytes, strlen(expectedBytes));
@@ -20,7 +12,7 @@ TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
   REQUIRE(closeOk);
 	}
 
-	Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_ReadBinary);
+	Os_FileHandle fh = Os_FileOpen("test.txt", Os_FM_ReadBinary);
   REQUIRE(fh != NULL);
 	REQUIRE(Os_FileIsOpen(fh));
 
@@ -34,9 +26,17 @@ TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
   REQUIRE(closeOk);
 }
 
+TEST_CASE("Open and close (C)", "[OS File]") {
+  Os_FileHandle fh = Os_FileOpen("test.txt", Os_FM_Read);
+  REQUIRE(fh != NULL);
+  REQUIRE(Os_FileIsOpen(fh));
+  bool closeOk = Os_FileClose(fh);
+  REQUIRE(closeOk);
+}
+
 TEST_CASE("Write Testing 1, 2, 3 text file (C)", "[OS File]") {
 
-  Os_FileHandle fh = Os_FileOpen("test_data/test2.txt", Os_FM_Write);
+  Os_FileHandle fh = Os_FileOpen("test2.txt", Os_FM_Write);
   REQUIRE(fh != NULL);
 
   static char expectedBytes[] = "Testing 1, 2, 3";
@@ -52,7 +52,7 @@ TEST_CASE("Write Testing 1, 2, 3 text file (C)", "[OS File]") {
 
 
   // verify write
-  Os_FileHandle fhr = Os_FileOpen("test_data/test2.txt", Os_FM_Read);
+  Os_FileHandle fhr = Os_FileOpen("test2.txt", Os_FM_Read);
   REQUIRE(fhr != NULL);
   char buffer[1024];
   size_t bytesRead = Os_FileRead(fhr, buffer, 1024);
@@ -66,7 +66,7 @@ TEST_CASE("Write Testing 1, 2, 3 text file (C)", "[OS File]") {
 
 TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
 
-  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_ReadBinary);
+  Os_FileHandle fh = Os_FileOpen("test.txt", Os_FM_ReadBinary);
   REQUIRE(fh != NULL);
 
   char buffer[1024];
@@ -99,7 +99,7 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
 
 TEST_CASE("Size (C)", "[OS File]") {
 
-  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_ReadBinary);
+  Os_FileHandle fh = Os_FileOpen("test.txt", Os_FM_ReadBinary);
   REQUIRE(fh != NULL);
 
   size_t size = Os_FileSize(fh);
