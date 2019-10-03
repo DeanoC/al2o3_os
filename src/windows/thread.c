@@ -2,6 +2,7 @@
 #include "al2o3_platform/windows.h"
 #include "al2o3_os/thread.h"
 #include <stdlib.h>
+#include "al2o3_memory/memory.h"
 
 static_assert(sizeof(CRITICAL_SECTION) == sizeof(Os_Mutex_t), "Mutex size failure in windows/thread.c");
 static_assert(sizeof(CONDITION_VARIABLE) == sizeof(Os_ConditionalVariable_t), "Condition Varialbe size failure in windows/thread.c");
@@ -50,7 +51,7 @@ static DWORD WINAPI FuncTrampoline(void *param) {
 
 EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, Os_JobFunction_t func, void *data) {
   ASSERT(thread);
-  struct TrampParam *tp = (struct TrampParam *) malloc(sizeof(struct TrampParam));
+  struct TrampParam *tp = (struct TrampParam *) MEMORY_MALLOC(sizeof(struct TrampParam));
   tp->func = func;
   tp->param = data;
   *thread = CreateThread(0, 0, &FuncTrampoline, tp, 0, 0);
