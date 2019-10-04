@@ -6,6 +6,7 @@
 #if defined(__linux__)
 #include <sys/sysinfo.h>
 #endif
+#include <pthread.h>
 
 AL2O3_EXTERN_C bool Os_MutexCreate(Os_Mutex_t *mutex) {
   ASSERT(mutex);
