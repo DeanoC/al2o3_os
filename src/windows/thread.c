@@ -45,7 +45,7 @@ struct TrampParam {
 static DWORD WINAPI FuncTrampoline(void *param) {
   struct TrampParam *tp = (struct TrampParam *) param;
   tp->func(tp->param);
-  free(param);
+  MEMORY_FREE(tp);
   return 0;
 }
 
