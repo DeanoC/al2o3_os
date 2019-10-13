@@ -20,8 +20,6 @@ project(${LibName})
 
 
 set(Interface
-		atomics.h
-		atomics.hpp
 		file.h
 		file.hpp
 		filesystem.h

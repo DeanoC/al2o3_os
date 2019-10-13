@@ -1,6 +1,8 @@
 // Full license at end of file
 // Summary: Apache - original from The-Forge modified by DeanoC
 
+// DEPRECIATED use al2s_thread instead
+
 #pragma once
 #ifndef WYRD_OS_THREAD_H
 #define WYRD_OS_THREAD_H
