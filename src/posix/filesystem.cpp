@@ -1,4 +1,5 @@
 #include "al2o3_platform/platform.h"
+#include "al2o3_platform/utf8.h"
 #include "al2o3_os/filesystem.hpp"
 #include "al2o3_tinystl/vector.hpp"
 
@@ -23,19 +24,19 @@ AL2O3_EXTERN_C bool Os_IsNormalisedPath(char const *path) {
 
 AL2O3_EXTERN_C bool Os_GetNormalisedPathFromPlatformPath(char const *path, char *pathOut, size_t maxSize) {
 	// just copy
-	if (strlen(path) >= maxSize) {
+	if (utf8size(path) >= maxSize) {
 		return false;
 	}
-	strcpy(pathOut, path);
+	utf8cpy(pathOut, path);
 	return true;
 }
 
 AL2O3_EXTERN_C bool Os_GetPlatformPathFromNormalisedPath(char const *path, char *pathOut, size_t maxSize) {
 	// just copy
-	if (strlen(path) >= maxSize) {
+	if (utf8size(path) >= maxSize) {
 		return false;
 	}
-	strcpy(pathOut, path);
+	utf8cpy(pathOut, path);
 	return true;
 }
 
@@ -59,8 +60,8 @@ AL2O3_EXTERN_C bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
 	if ((homedir = getenv("HOME")) == NULL) {
 	    homedir = getpwuid(getuid())->pw_dir;
 	}
-	if(strlen(homedir) < maxSize) {
-		strcpy(dirOut, homedir);
+	if(utf8size(homedir) < maxSize) {
+		utf8cpy(dirOut, homedir);
 		return true;
 	}
 	return false;
@@ -71,18 +72,18 @@ AL2O3_EXTERN_C bool Os_GetAppPrefsDir(char const *org, char const *app, char *di
   if(Os_GetUserDocumentsDir(homeDir, sizeof(homeDir)) == false) {
   	return false;
   }
-  if(strlen(org) > 1024) {
+  if(utf8size(org) > 1024) {
   	return false;
   }
-  if(strlen(app) > 1024) {
+  if(utf8size(app) > 1024) {
   	return false;
   }
 
   char path[4096];
   sprintf(path, "%s\\%s\\%s", homeDir, org, app);
 
-  if (strlen(path) >= maxSize) { return false; }
-  strcpy(dirOut, path);
+  if (utf8size(path) >= maxSize) { return false; }
+  utf8cpy(dirOut, path);
   return true;
 }
 
@@ -108,7 +109,7 @@ AL2O3_EXTERN_C bool Os_GetCurrentDir(char *dirOut, size_t maxSize) {
 		return false;
 	}
 
-	size_t len = strlen(dirOut);
+	size_t len = utf8size(dirOut);
 	if (dirOut[len] != '/') {
 		if (len + 1 >= maxSize) {
 			return false;
@@ -147,15 +148,15 @@ AL2O3_EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
 	char srcBuffer[2048];
 	char dstBuffer[2048];
 
-	if(strlen(src) > 2048) {
+	if(utf8size(src) > 2048) {
 		return false;
 	}
-	if(strlen(dst) > 2048) {
+	if(utf8size(dst) > 2048) {
 		return false;
 	}
 
 	if (Os_IsNormalisedPath(src)) {
-		strcpy(srcBuffer, src);
+		utf8cpy(srcBuffer, src);
 	} else {
 		bool platformOk = Os_GetPlatformPathFromNormalisedPath(src, srcBuffer, sizeof(srcBuffer));
 		if (platformOk == false) {
@@ -163,7 +164,7 @@ AL2O3_EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
 		}
 	}
 	if (Os_IsNormalisedPath(dst)) {
-		strcpy(dstBuffer, dst);
+		utf8cpy(dstBuffer, dst);
 	} else {
 		bool platformOk = Os_GetPlatformPathFromNormalisedPath(dst, dstBuffer, sizeof(dstBuffer));
 		if (platformOk == false) {
@@ -207,7 +208,7 @@ AL2O3_EXTERN_C bool Os_FileDelete(char const *fileName) {
 	char buffer[2048];
 
 	if (Os_IsNormalisedPath(fileName)) {
-		strcpy(buffer, fileName);
+		utf8cpy(buffer, fileName);
 	} else {
 		bool platformOk = Os_GetPlatformPathFromNormalisedPath(fileName, buffer, sizeof(buffer));
 		if (platformOk == false) {
@@ -334,10 +335,10 @@ AL2O3_EXTERN_C Os_DirectoryEnumeratorItem const *Os_DirectoryEnumeratorSyncNext(
 	if (entry == nullptr)
 		return nullptr;
 	// skip . and ..
-	if (strncmp(entry->d_name, ".", 1) == 0) {
+	if (utf8ncmp(entry->d_name, ".", 1) == 0) {
 		return Os_DirectoryEnumeratorSyncNext(handle);
 	}
-	if (strncmp(entry->d_name, "..", 2) == 0) {
+	if (utf8ncmp(entry->d_name, "..", 2) == 0) {
 		return Os_DirectoryEnumeratorSyncNext(handle);
 	}
 

@@ -1,7 +1,6 @@
 #include "al2o3_platform/platform.h"
 #include "al2o3_os/file.h"
 #include <stdio.h>
-#include <string.h>
 
 static void TranslateFileAccessFlags(enum Os_FileMode modeFlags, char *fileAccessString, int strLength) {
   ASSERT(fileAccessString != NULL && strLength >= 4);
