@@ -28,8 +28,6 @@ set(Interface
 		platformevents.hpp
 		rect.h
 		rect.hpp
-		thread.h
-		thread.hpp
 		time.h
 		)
 set(Src
@@ -38,7 +36,7 @@ set(Src
 		)
 if (WIN32)
 	list(APPEND Src windows/filesystem.cpp)
-	list(APPEND Src windows/thread.c)
+	list(APPEND Src windows/time.c)
 endif()
 
 if(APPLE)
@@ -48,7 +46,6 @@ endif()
 
 if(APPLE OR UNIX)
 	list(APPEND Src posix/filesystem.cpp)
-	list(APPEND Src posix/thread.c)
 endif()
 
 set(Deps
@@ -64,7 +61,6 @@ set( Tests
 		runner.cpp
 		test_file.cpp
 		test_filesystem.cpp
-		test_thread.cpp
 		)
 set( TestDeps
 		al2o3_catch2 )
