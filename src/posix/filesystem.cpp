@@ -110,12 +110,12 @@ AL2O3_EXTERN_C bool Os_GetCurrentDir(char *dirOut, size_t maxSize) {
 	}
 
 	size_t len = utf8size(dirOut);
-	if (dirOut[len] != '/') {
+	if (dirOut[len-1] != '/') {
 		if (len + 1 >= maxSize) {
 			return false;
 		}
-		dirOut[len] = '/';
-		dirOut[len + 1] = 0;
+		dirOut[len-1] = '/';
+		dirOut[len] = 0;
 	}
 	return true;
 

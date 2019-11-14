@@ -1,4 +1,5 @@
 #include "al2o3_platform/platform.h"
+#include "al2o3_platform/utf8.h"
 #include "al2o3_catch2/catch2.hpp"
 #include "al2o3_os/filesystem.h"
 #include "al2o3_tinystl/string.hpp"
@@ -9,20 +10,20 @@ TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
 
   bool intPathOk = Os_GetNormalisedPathFromPlatformPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(intPathOk);
-  REQUIRE(strcmp(testFileInternalPath, pathOut) == 0);
+  REQUIRE(utf8cmp(testFileInternalPath, pathOut) == 0);
 
   REQUIRE(Os_IsNormalisedPath(pathOut));
 
 #if AL2O3_PLATFORM == AL2O3_PLATFORM_WINDOWS
   bool platPathOk = Os_GetPlatformPathFromNormalisedPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);
-  REQUIRE(strcmp(testFileInternalPath, pathOut) != 0);
+  REQUIRE(utf8cmp(testFileInternalPath, pathOut) != 0);
 
   REQUIRE(!Os_IsNormalisedPath(pathOut));
 #else
   bool platPathOk = Os_GetPlatformPathFromNormalisedPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);
-  REQUIRE(strcmp(testFileInternalPath, pathOut) == 0);
+  REQUIRE(utf8cmp(testFileInternalPath, pathOut) == 0);
 
   REQUIRE(Os_IsNormalisedPath(testFileInternalPath));
 
@@ -37,14 +38,14 @@ TEST_CASE("SplitPath (C)", "[OS FileSystem]") {
   bool splitOk = Os_SplitPath(testFilePath, &fileNamePos, &extensionPos);
   REQUIRE(splitOk);
   REQUIRE(fileNamePos == 19);
-  REQUIRE(strcmp(&testFilePath[fileNamePos], "test.txt") == 0);
+  REQUIRE(utf8cmp(&testFilePath[fileNamePos], "test.txt") == 0);
   REQUIRE(extensionPos == 24);
-  REQUIRE(strcmp(&testFilePath[extensionPos], "txt") == 0);
+  REQUIRE(utf8cmp(&testFilePath[extensionPos], "txt") == 0);
 
   char pathOnly[1024];
-  strncpy(pathOnly, testFilePath, fileNamePos);
+  utf8ncpy(pathOnly, testFilePath, fileNamePos);
   pathOnly[fileNamePos] = 0;
-  REQUIRE(strcmp(pathOnly, "test_data/al2o3_os/") == 0);
+  REQUIRE(utf8cmp(pathOnly, "test_data/al2o3_os/") == 0);
 
 }
 
@@ -58,21 +59,21 @@ TEST_CASE("ReplaceExtension (C)", "[OS FileSystem]") {
   char buffer[1024];
   bool replace0Ok = Os_ReplaceExtension(testFilePath, extReplace0, buffer, sizeof(buffer));
   REQUIRE(replace0Ok);
-  REQUIRE(strcmp("test_data/al2o3_os/test.tmp", buffer) == 0);
+  REQUIRE(utf8cmp("test_data/al2o3_os/test.tmp", buffer) == 0);
   bool replace1Ok = Os_ReplaceExtension(testFilePath, extReplace1, buffer, sizeof(buffer));
   REQUIRE(replace1Ok);
-  REQUIRE(strcmp("test_data/al2o3_os/test.longer_ext", buffer) == 0);
+  REQUIRE(utf8cmp("test_data/al2o3_os/test.longer_ext", buffer) == 0);
   bool replace2Ok = Os_ReplaceExtension(buffer, "txt", buffer, sizeof(buffer));
   REQUIRE(replace2Ok);
-  REQUIRE(strcmp(testFilePath, buffer) == 0);
+  REQUIRE(utf8cmp(testFilePath, buffer) == 0);
 
   bool replace3Ok = Os_ReplaceExtension(test1FilePath, extReplace0, buffer, sizeof(buffer));
   REQUIRE(replace3Ok);
-  REQUIRE(strcmp("test_data/al2o3_os/test.tmp", buffer) == 0);
+  REQUIRE(utf8cmp("test_data/al2o3_os/test.tmp", buffer) == 0);
 
   bool replace4Ok = Os_ReplaceExtension(test2FilePath, extReplace0, buffer, sizeof(buffer));
   REQUIRE(replace4Ok);
-  REQUIRE(strcmp("test_data/al2o3_os/test.tmp", buffer) == 0);
+  REQUIRE(utf8cmp("test_data/al2o3_os/test.tmp", buffer) == 0);
 
 }
 
@@ -84,15 +85,15 @@ TEST_CASE("GetParentPath (C)", "[OS FileSystem]") {
   char buffer[1024];
   bool const parentOk = Os_GetParentPath(testFilePath, buffer, sizeof(buffer));
   REQUIRE(parentOk);
-  REQUIRE(strcmp("bob/test_data/", buffer) == 0);
+  REQUIRE(utf8cmp("bob/test_data/", buffer) == 0);
 
   bool const parent0Ok = Os_GetParentPath(testDir0Path, buffer, sizeof(buffer));
   REQUIRE(parent0Ok);
-  REQUIRE(strcmp("bob/", buffer) == 0);
+  REQUIRE(utf8cmp("bob/", buffer) == 0);
 
   bool const parent1Ok = Os_GetParentPath(testDir1Path, buffer, sizeof(buffer));
   REQUIRE(parent1Ok);
-  REQUIRE(strcmp("bob/", buffer) == 0);
+  REQUIRE(utf8cmp("bob/", buffer) == 0);
 
 }
 
@@ -103,13 +104,11 @@ TEST_CASE("Os_GetCurrentDir (C)", "[OS FileSystem]") {
   REQUIRE(getOk);
 
   tinystl::string path(buffer);
-  if (path.back() == '/') {
-    path.resize(path.size() - 1);
-  }
-
-  size_t const curdirPos = path.find_last('/');
+  size_t curdirPos = path.find_last('/');
+  REQUIRE(curdirPos == path.length()-1);
+  curdirPos = path.find_last('/', curdirPos-1);
   REQUIRE(curdirPos != tinystl::string::npos);
-  REQUIRE(strcmp("out_bin/", buffer + curdirPos + 1) == 0);
+  REQUIRE(utf8cmp("out_bin/", buffer + curdirPos + 1) == 0);
 
 }
 
@@ -129,7 +128,7 @@ TEST_CASE("Os_SetCurrentDir (C)", "[OS FileSystem]") {
   bool const getOk3 = Os_GetCurrentDir(buffer3, sizeof(buffer3));
   REQUIRE(getOk3);
 
-  REQUIRE(strcmp(buffer3, buffer2) == 0);
+  REQUIRE(utf8cmp(buffer3, buffer2) == 0);
 
   // reset
   bool const setOk1 = Os_SetCurrentDir(buffer);
@@ -226,7 +225,7 @@ TEST_CASE("Os_DirectoryEnumerator Sync (C)", "[OS FileSystem]") {
 	Os_DirectoryEnumeratorHandle handle = Os_DirectoryEnumeratorCreate(buffer);
 	REQUIRE(handle);
 	while (auto entry = Os_DirectoryEnumeratorSyncNext(handle)) {
-		if (strcmp(entry->filename, "test_data") == 0) {
+		if (utf8cmp(entry->filename, "test_data") == 0) {
 			foundTestTxt = true;
 		}
 	}
